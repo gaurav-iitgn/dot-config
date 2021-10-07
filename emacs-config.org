@@ -1,0 +1,1208 @@
+#+TTITLE: Emacs Configuration
+# Heavily inspired from Harry Schwartz's configuration ideas
+# https://emacs.readthedocs.io/en/latest/index.html
+
+* Initialize package manager
+#+begin_src emacs-lisp
+(package-initialize)
+(require 'package)
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+(add-to-list 'package-archives '("melpa" .  "https://melpa.org/packages/") t)
+#+end_src
+
+* Configure =use-package=
+This package is used to configure other packages. Installation of this package itself is handled in ~/.emacs itself.
+Rest of the packages are managed by =use-package=. The following ensures =use-package= is able to handle things as expected
+
+#+begin_src emacs-lisp
+;; Ensure that use-package is installed.
+;; If not installed, do so and to initial setup
+(when (not (package-installed-p 'use-package))
+	(package-refresh-contents)
+	(package-install 'use-package))
+	
+  (require 'use-package-ensure)
+  (setq use-package-always-ensure t)
+#+end_src
+
+* Define some constants to make life easy later
+
+#+begin_src emacs-lisp
+(defconst *sys/gui*
+  (display-graphic-p)
+  "Are we running on a GUI Emacs?")
+
+(defconst *sys/win32*
+  (eq system-type 'windows-nt)
+  "Are we running on a Windows system?")
+
+(defconst *sys/linux*
+  (eq system-type 'gnu/linux)
+  "Are we running on a GNU/Linux system?")
+
+(defconst *sys/mac*
+  (eq system-type 'darwin)
+  "Are we running on a Mac system?")
+
+(defconst *sys/cygwin*
+  (eq system-type 'cygwin)
+  "Are we running on a Cygwin system?")
+
+(defconst *sys/root*
+  (string-equal "root" (getenv "USER"))
+  "Are you a ROOT user?")
+
+(defconst *rg*
+  (executable-find "rg")
+  "Do we have ripgrep?")
+
+(defconst *python*
+  (executable-find "python")
+  "Do we have python?")
+
+(defconst *python3*
+  (executable-find "python3")
+  "Do we have python3?")
+
+(defconst *mvn*
+  (executable-find "mvn")
+  "Do we have Maven?")
+
+(defconst *gcc*
+  (executable-find "gcc")
+  "Do we have gcc?")
+
+(defconst *git*
+  (executable-find "git")
+  "Do we have git?")
+
+(defconst *pdflatex*
+  (executable-find "pdflatex")
+  "Do we have pdflatex?")
+#+end_src
+
+
+* Information about myself
+
+#+begin_src emacs-lisp
+(setq user-full-name "Gaurav Srivastava"
+      user-mail-address "gauravs@iitgn.ac.in"
+      )
+#+end_src
+
+
+* Utilities
+#+begin_src emacs-lisp
+;; Change "yes or no" to "y or n"
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; function to reload dot-emacs
+(defun gs/reload-dot-emacs ()
+  "Save the .emacs buffer if needed, then reload .emacs."
+  (interactive)
+  (let ((dot-emacs "~/.emacs"))
+    (and (get-file-buffer dot-emacs)
+         (save-buffer (get-file-buffer dot-emacs)))
+    (load-file dot-emacs))
+  (message "Re-initialized!"))
+
+;;display time in the emacs status bar
+(display-time-mode)
+
+;; function to rename current buffer
+;; Source: http://www.whattheemacsd.com/
+(defun gs/rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting."
+  (interactive)
+  (let ((name (buffer-name))
+        (filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " filename)))
+        (if (get-buffer new-name)
+            (error "A buffer named '%s' already exists!" new-name)
+          (rename-file filename new-name 1)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)
+          (message "File '%s' successfully renamed to '%s'."
+                   name (file-name-nondirectory new-name)))))))
+
+#+end_src
+
+** When emacs remains idle for 5 minutes, display the agenda
+Taken from: https://lists.gnu.org/archive/html/emacs-orgmode/2010-03/msg00367.html
+(John Wiegley)
+#+begin_src elisp
+(defun jump-to-org-agenda ()
+  (interactive)
+  (let ((buf (get-buffer "*Org Agenda*"))
+        wind)
+    (if buf
+        (if (setq wind (get-buffer-window buf))
+            (select-window wind)
+          (if (called-interactively-p)
+              (progn
+                (select-window (display-buffer buf t t))
+                (org-fit-window-to-buffer)
+                ;; (org-agenda-redo)
+                )
+            (with-selected-window (display-buffer buf)
+              (org-fit-window-to-buffer)
+              ;; (org-agenda-redo)
+              )))
+      (call-interactively 'org-agenda-list)))
+  ;;(let ((buf (get-buffer "*Calendar*")))
+  ;;  (unless (get-buffer-window buf)
+  ;;    (org-agenda-goto-calendar)))
+  )
+
+;; (run-with-idle-timer 300 t 'jump-to-org-agenda)
+#+end_src
+
+
+* ENABLE/DISABLE/CONFIGURE PACKAGES
+** To inherit executable paths from Shell
+Of course, this will not work for windows.
+#+begin_src emacs-lisp
+(if (not *sys/win32*)
+(progn
+	(use-package exec-path-from-shell)
+	(exec-path-from-shell-initialize)
+))
+#+end_src
+
+** Load relevant languages in org babel
+
+#+begin_src emacs-lisp
+(org-babel-do-load-languages
+  'org-babel-load-languages
+  '((python . t))
+)
+#+end_src
+
+** YASnippet for inserting structured templates
+
+#+begin_src emacs-lisp
+(use-package yasnippet)
+(require 'yasnippet)
+(yas-global-mode 1)
+#+end_src
+
+
+** 's' - string manipulating package
+
+#+begin_src emacs-lisp
+(use-package s)
+(require 's)
+#+end_src
+
+** EVIL -- enable
+
+#+begin_src emacs-lisp
+(setq evil-want-integration t)
+(setq evil-want-keybinding nil)
+(use-package evil)
+(require 'evil)
+(evil-mode t)
+#+end_src
+
+** ORG -- enable
+
+#+begin_src emacs-lisp
+(require 'org)
+#+end_src
+
+*** set org directory, agenda files etc
+
+#+begin_src emacs-lisp
+(defvar gs/org-root-dir (concat gs-mega-dir "/Notes"))
+(setq org-directory gs/org-root-dir)
+(setq org-agenda-files (list gs/org-root-dir))
+
+;; setup refile to use all agenda files
+(setq org-refile-targets
+  '((nil :maxlevel . 3)
+    (org-agenda-files :maxlevel . 3)))
+		
+;; enable use of tags from all agenda files
+(setq org-complete-tags-always-offer-all-agenda-tags t)
+#+end_src
+
+*** setup of inbox and other files, capture templates, etc.
+
+#+begin_src emacs-lisp
+(defvar gs/org-inbox-file (concat gs-mega-dir "/Notes/000_Inbox.org"))
+
+;; t is for quick TODO capture
+;; 'e' is for email TODO capture and 'r' is for email archive capture (if an email is related to an ongoing issue)
+;; Both 'e' and 'r' rely on a browser plugin (GS-ORG-CAPTURE) that copies Email subject and URL for use by the capture template (%x)
+(setq org-capture-templates
+  '(("t" "Quick Todo" entry (file+headline gs/org-inbox-file "Quick Todos")
+		 "* TODO %^{Task}\n" :immediate-finish t)
+    ("i" "Thoughts and Ideas" entry (file+headline gs/org-inbox-file "Ideas")
+		 "* %^{Idea}\n" :immediate-finish t)
+    ("e" "Email Todo" entry (file+headline gs/org-inbox-file "Dump from GMail")
+		 "* TODO %x\n")
+    ("r" "Email Resource" entry (file+headline gs/org-inbox-file "Dump from GMail")
+		 "* %x\n")
+    ("m" "Meeting" entry (file+headline gs/org-inbox-file "Meetings")
+		 "* %t %?")
+	 ))
+#+end_src
+
+
+*** todo states
+
+#+begin_src emacs-lisp
+(setq org-todo-keywords 
+  '((sequence "TODO(t)" 
+              "DOING(g@)"
+              "FOLLOWUP(f@)" 
+              "DISCUSS(d@)"
+							"|"
+							"DONE(x@/!)"
+							"CANCELLED(c@/!)"
+)))
+(setq org-todo-keyword-faces
+   '(("TODO"     . (:foreground "red" :weight "bold"))
+	   ("DOING"    . (:foreground "cyan" :weight "bold"))
+	   ("FOLLOWUP" . (:foreground "orange" :weight "bold"))
+     ("DISCUSS"  . (:foreground "blue" :weight "bold"))
+     ("DONE"     . (:foreground "green" :weight "bold"))
+     ("CANCELLED". (:foreground "gray" :weight "bold"))
+))
+#+end_src
+
+*** start scratch in org mode
+
+#+begin_src emacs-lisp
+(setq initial-major-mode 'org-mode)
+#+end_src
+
+*** use sticky headers
+
+#+begin_src emacs-lisp
+(use-package org-sticky-header
+ :hook (org-mode . org-sticky-header-mode)
+ :config
+ (setq-default
+  org-sticky-header-full-path 'full
+  ;; Child and parent headings are seperated by a /.
+  org-sticky-header-outline-path-separator "/"))
+#+end_src
+
+*** for pretty bullets and proportional font sizes
+
+#+begin_src emacs-lisp
+(use-package org-bullets
+	:init
+	(add-hook 'org-mode-hook 'org-bullets-mode))
+;; hide slash and stars for italics and bold
+(setq org-hide-emphasis-markers t)
+
+;; https://zzamboni.org/post/beautifying-org-mode-in-emacs/
+;; proportional font sizes
+;;  (let* ((variable-tuple
+;;            (cond ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+;;                  ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+;;                  ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+;;                  ((x-list-fonts "Verdana")         '(:font "Verdana"))
+;;                  ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+;;                  (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+;;           (base-font-color     (face-foreground 'default nil 'default))
+;;           (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+;;  
+;;      (custom-theme-set-faces
+;;       'user
+;;       `(org-level-8 ((t (,@headline ,@variable-tuple))))
+;;       `(org-level-7 ((t (,@headline ,@variable-tuple))))
+;;       `(org-level-6 ((t (,@headline ,@variable-tuple))))
+;;       `(org-level-5 ((t (,@headline ,@variable-tuple))))
+;;       `(org-level-4 ((t (,@headline ,@variable-tuple :height 0.80))))
+;;       `(org-level-3 ((t (,@headline ,@variable-tuple :height 0.90))))
+;;       `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.00))))
+;;       `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.10))))
+;;       `(org-document-title ((t (,@headline ,@variable-tuple :height 1.3 :underline nil))))))
+
+;; enable proportional fonts for org mode
+;;(add-hook 'org-mode-hook 'variable-pitch-mode)
+
+#+end_src
+
+*** syntax highlighting in source blocks; disable adaptive indentation
+
+#+begin_src emacs-lisp
+(setq org-src-fontify-natively t)
+(setq org-adapt-indentation nil)
+#+end_src
+
+
+*** use images/screenshots
+
+#+begin_src emacs-lisp
+(use-package org-download)
+(setq org-startup-with-inline-images t)
+#+end_src
+
+*** use evil with org agendas
+
+#+begin_src emacs-lisp
+(use-package evil-org
+  :after org
+  :config
+  (add-hook 'org-mode-hook 'evil-org-mode)
+  (add-hook 'evil-org-mode-hook
+            (lambda() (evil-org-set-key-theme)))
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+;; RETURN will follow links in orgmode files
+(setq org-return-follows-link t)
+#+end_src
+
+*** custom functions to handle documents, workflows and book keeping
+
+#+begin_src emacs-lisp
+;; suggested by Nicolas Goaziou
+;; taken from: https://kitchingroup.cheme.cmu.edu/blog/2013/05/05/Getting-keyword-options-in-org-files/
+;; gets value of org keywords like TITLE, DATE, etc.
+;; allows any customized #+PROPERTY:value
+(defun gs/get-org-kwds ()
+  "parse the buffer and return a cons list of (property . value)
+		from lines like: #+PROPERTY: value"
+  (org-element-map (org-element-parse-buffer 'element) 'keyword
+                   (lambda (keyword) (cons (org-element-property :key keyword)
+                                           (org-element-property :value keyword)))
+  )
+)
+
+(defun gs/get-org-kwd (KEYWORD)
+  "get the value of a KEYWORD in the form of #+KEYWORD: value"
+  (interactive)
+  (cdr (assoc KEYWORD (gs/get-org-kwds)))
+)
+
+#+end_src
+
+
+#+begin_src emacs-lisp
+(require 's)
+(defun gs/open-file-doc-dir ()
+"Opens document resource directory of the current org file"
+  (interactive)
+  ;; get the current filename sans the directory structure
+  ;; split by '/' -- last one will have the org file name
+  (setq fname (s-split "/" buffer-file-truename))
+
+  ;; choose the last element of the extracted name
+  (setq fname (elt fname (- (length fname) 1)))
+
+  ;; get the unique identifier number (number before the '_')
+  (setq fname (s-split "_" fname))
+  (setq fname (elt fname 0))
+
+  ;; get the base directory from DOCDIR keyword of the file
+  ;; this specifies whether the related documents are on MEGA, Dropbox,
+  ;; Google Drive or NAS 
+  ;; this keyword is DOCDIR -- must be defined in the org file
+  (setq mydocdirstr (gs/get-org-kwd "DOCDIR"))
+  (setq mybasedir gs-google-dir)
+  (cond 
+    ((equal mydocdirstr "google")(setq mybasedir gs-google-dir))
+    ((equal mydocdirstr "dropbox")(setq mybasedir gs-dropbox-dir))
+    ((equal mydocdirstr "mega")(setq mybasedir gs-mega-dir))
+    ((equal mydocdirstr "nas")(setq mybasedir gs-nas-dir))
+  )
+  
+  ;;(print mybasedir)
+  ;;(print fname)
+	
+  ;; build directory name
+  (setq mydir (s-concat mybasedir "/" fname "_*"))
+
+	;;(print mydir)
+
+  ;; expand the wildcard to get full name
+	;; file-expand-wildcards returns a list; pick the first element with car
+  (setq mydir (car (file-expand-wildcards mydir)))
+	
+	;;(print "HERE")
+	;;(print mydir)
+
+  ;; open this directory in a new frame of emacs (within dired)
+  ;; (dired-other-frame mydir)
+
+  ;; for windows, convert forward slashes to backward slashes in the filepath
+  (when (s-contains? "explorer" gs-file-manager)
+    (setq mydir (s-replace "/" "\\" mydir))
+  )
+  ;; open this directory in the file manager of the OS
+  (shell-command (concat gs-file-manager mydir))
+)
+#+end_src
+
+#+begin_src emacs-lisp
+(require 's)
+(defun gs/open-resource-dir ()
+"Opens document resource directory of the current headline within the org file"
+  (interactive)
+	
+	;; obtain the DOCDIR (google / mega / dropbox / nas) from the PROPERTIES
+  ;; get the base directory from DOCDIR keyword of the file
+  ;; this specifies whether the related documents are on MEGA, Dropbox,
+  ;; Google Drive or NAS 
+  ;; this keyword is DOCDIR -- must be defined in the PROPERTIES of the headline
+  (setq mydocdirstr (car (org-property-values "DOCDIR")))
+  (setq mybasedir gs-google-dir)
+  (cond 
+    ((equal mydocdirstr "google")(setq mybasedir gs-google-dir))
+    ((equal mydocdirstr "dropbox")(setq mybasedir gs-dropbox-dir))
+    ((equal mydocdirstr "mega")(setq mybasedir gs-mega-dir))
+    ((equal mydocdirstr "nas")(setq mybasedir gs-nas-dir))
+  )
+	
+  ;;(print mybasedir)
+	
+	;; obtain the FIRST tag of the headline
+  ;; this should be in the format XXX_Y_Z where X, Y, Z are all numbers (e.g. 405_2_1)
+	;; it is assumed that the classified will be the FIRST tag among others for the headine
+	(setq mytag (car (org-get-tags)))
+	
+  ;;(print (concat "mytag1: " mytag  "_1end"))
+	
+	;; replace _ with . to enable mapping with directory names
+  (setq mytag (s-replace "_" "." mytag))
+  
+  ;;(print (concat "mytag2: " mytag  "_2end"))
+
+  ;; build directory name
+  (setq mydir (concat mybasedir "/" mytag "_*"))
+	
+  ;;(print (concat "mydir1: " mydir  "_1end"))
+	
+  ;; expand the wildcard to get full name
+	;; file-expand-wildcards returns a list; pick the first element with car
+  ;;(setq mydir (file-expand-wildcards mydir))
+  (setq mydir (car (file-expand-wildcards mydir)))
+	
+  ;;(print (concat "mydir2: " mydir  "_2end"))
+	
+  ;; open this directory in a new frame of emacs (within dired)
+  ;; (dired-other-frame mydir)
+
+  ;; for wsl on windows, need to convert /mnt/c to C:
+  (when (and (s-contains? "explorer" gs-file-manager) (not (eq system-type 'windows-nt)))
+	  ;;remove /mnt/
+		;;(print "In a WSL environment")
+		;;(print (concat "Before: " mydir))
+    (setq mydir (s-replace "\/mnt\/" "//" mydir))
+		;;(print (concat "After: " mydir))
+		
+		;;Now, the drive letter will be at the third position:
+		;; like: / / c / ... or / / g / ... 
+		;; check if first two characters are /, third is an alphabet and fourth is a /
+    ;; if yes, remove the first to /'s, insert a : after the alphabet (drive letter)
+		;; before processing: / / a / remaining/path
+		;;                    0 1 2 3 ...
+		;; obtain substring up to 3:
+		(setq drivesubstr (car (s-match "^//[a-z]" mydir)))
+		(when (> (length drivesubstr) 0)
+		  ;;work with drivesubstr to get the drive letter
+			;;drivesubstr should be of the following form:
+			;;                    / / a 
+			;;                    0 1 2 
+			;; remove first two / / to get the drive letter
+			(setq driveletter (s-replace "\/\/" "" drivesubstr))
+			
+			;; replace //c/ with c:/ in the mydir
+			;; searching will be based on driveletter
+			(setq mydir (s-replace (concat "\/\/" driveletter "\/") (concat driveletter "\:\/") mydir))
+		)
+  )
+	;;(print mydir)
+
+  ;; for windows, convert forward slashes to backward slashes in the filepath
+  (when (s-contains? "explorer" gs-file-manager)
+    (setq mydir (s-replace "/" "\\" mydir))
+		;;also add quotes
+		(setq mydir (s-concat "\"" mydir "\""))
+  )
+  ;; open this directory in the file manager of the OS
+  ;;(print (concat "> " gs-file-manager mydir " <"))
+  (shell-command (concat gs-file-manager mydir))
+)
+#+end_src
+
+
+*** Custom Agenda views and customized behavior
+#+begin_src emacs-lisp
+(setq org-agenda-custom-commands
+      '(("g" "Get Things Done (GTD)"
+         ((agenda ""
+                  ((org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'deadline))
+                   (org-deadline-warning-days 0)))
+          (todo "DOING"
+                ((org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'deadline))
+                 (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nActive Tasks\n")))
+          (todo "TODO"
+                ((org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'deadline))
+                 (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nTasks to be Planned\n")))
+          (todo "FOLLOWUP"
+                ((org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'deadline))
+                 (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nFollow ups\n")))
+          (todo "DISCUSS"
+                ((org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'deadline))
+                 (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nTo be Discussed with someone\n")))
+          (tags "CLOSED>=\"<today>\""
+                ((org-agenda-overriding-header "\nCompleted today\n"))))))
+);;setq
+
+(setq org-agenda-todo-ignore-scheduled 'all)
+(setq org-agenda-todo-ignore-deadlines 'all)
+(setq org-agenda-todo-ignore-timestamps 'all)
+
+#+end_src
+
+
+** Ledger and its configuration
+#+begin_src emacs-lisp
+	;; (use-package company)
+	;; (use-package company-ledger
+	;; 	:ensure company
+	;; 	:init
+	;; 	(with-eval-after-load 'company
+	;; 		(add-to-list 'company-backends  'company-ledger))
+	;; 	)
+
+	;; https://www.reddit.com/r/emacs/comments/8x4xtt/tip_how_i_use_ledger_to_track_my_money/
+	;; https://github.com/yradunchev/ledger
+	(use-package ledger-mode)
+	(use-package flycheck-ledger  :after ledger-mode)
+	(setq ledger-binary-path gs-ledger-executable)
+	(add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode))
+	(add-hook 'ledger-mode-hook
+						(lambda ()
+							;; (company-mode)
+							(setq-local tab-always-indent 'complete)
+							(setq-local completion-cycle-threshold t)
+							(setq-local ledger-complete-in-steps t)
+							)
+						)
+
+	;; capture templates for org
+  (setq gs-ledger-file (concat gs-mega-dir "/ledger/data/journal.ledger"))
+	(setq org-capture-templates
+				(append '(("l" "Ledger entries")
+									("lc" "SBI Credit Card" plain
+									 (file gs-ledger-file)
+									 "%(org-read-date) %^{Description}
+		Expenses:%^{Account}  %^{Amount}
+		Liabilities:CC:SBI
+	")
+									("lb" "SBI Savings Bank Account" plain
+									 (file gs-ledger-file)
+									 "%(org-read-date) * %^{Description}
+		Expenses:%^{Account}  %^{Amount}
+		Assets:Saving:SBIGN
+	"))
+								org-capture-templates))
+
+#+end_src
+
+** Helm and its configuration
+#+begin_src emacs-lisp
+(use-package helm
+  :ensure t
+  :bind (("M-x"     . helm-M-x)
+  ;;       ("C-x C-m" . helm-M-x)
+         ("M-y"     . helm-show-kill-ring)
+         ("C-x b"   . helm-mini)
+         ("C-x C-b" . helm-buffers-list)
+         ("C-x C-f" . helm-find-files)
+  ;;       ("C-h r"   . helm-info-emacs)
+  ;;       ("C-h C-l" . helm-locate_library)
+  ;;       ("C-x r b" . helm-filtered-bookmarks)  ; Use helm bookmarks
+         ("C-c f"   . helm-recentf)
+         ("C-c j"   . helm-imenu)
+  ;;       ("C-c C-r" . helm-resume)
+  ;;       :map helm-map
+  ;;       ("<tab>" . helm-execute-persistent-action)  ; Rebind tab to run persistent action
+  ;;       ("C-i"   . helm-execute-persistent-action)  ; Make TAB work in terminals
+  ;;       ("C-z"   . helm-select-action)  ; List actions
+  ;;       :map shell-mode-map  ;; Shell history
+  ;;       ("C-c C-l" . helm-comint-input-ring)
+         )
+  :config
+  ;; See https://github.com/bbatsov/prelude/pull/670 for a detailed
+  ;; discussion of these options.
+  (setq helm-split-window-inside-p            t
+        helm-buffers-fuzzy-matching           t
+        helm-move-to-line-cycle-in-source     t
+        helm-ff-search-library-in-sexp        t
+        helm-ff-file-name-history-use-recentf t)
+
+  (setq helm-google-suggest-use-curl-p t)
+
+  ;; keep follow-mode in between helm sessions once activated
+  (setq helm-follow-mode-persistent t)
+
+  ;; Smaller helm window
+  ;;(setq helm-autoresize-max-height 0)
+  ;;(setq helm-autoresize-min-height 30)
+  ;;(helm-autoresize-mode 1)
+
+  ;; Don't show details in helm-mini for tramp buffers
+  (setq helm-buffer-skip-remote-checking t)
+
+  (require 'helm-bookmark)
+  ;; Show bookmarks (and create bookmarks) in helm-mini
+  (setq helm-mini-default-sources '(helm-source-buffers-list
+                                    helm-source-recentf
+                                    helm-source-bookmarks
+                                    helm-source-bookmark-set
+                                    helm-source-buffer-not-found))
+
+  ;;(substitute-key-definition 'find-tag 'helm-etags-select global-map)
+  ;;(setq projectile-completion-system 'helm)
+
+)
+(define-key evil-ex-map "b" 'helm-buffers-list)
+(helm-mode 1)
+#+end_src
+
+
+** Matlab 
+#+begin_src emacs-lisp
+;;(use-package matlab-mode)
+	(autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
+	(add-to-list
+	 'auto-mode-alist
+	 '("\\.m$" . matlab-mode))
+	(setq matlab-indent-function t)
+	(setq matlab-shell-command "matlab")
+
+
+#+end_src
+
+** Python configuration
+#+begin_src emacs-lisp
+;;this applies everywhere
+(set-language-environment "UTF-8")
+
+(use-package elpy
+  :ensure t
+  :defer t
+  :init
+  (advice-add 'python-mode :before 'elpy-enable)
+	(setq elpy-rpc-python-command "python3")
+)
+
+;; the following has been set as the system variable $WORKON_HOME 
+;; (setq elpy-rpc-virtualenv-path "/cygdrive/c/users/gaurav/cyg_python_venv")
+
+(setq python-indent-offset 2)
+
+#+end_src
+
+
+** Evil Collection (for key bindings in most places)
+- This one had some error when trying to install with command line
+- Installed from list-packages instead. This worked on linux system (not working on Windows).
+
+#+begin_src emacs-lisp
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
+#+end_src
+
+** DEFT
+- following is for configuring deft mode
+- key to launch deft; disable evil in deft mode
+
+#+begin_src emacs-lisp
+(use-package deft
+  :bind ("C-c n" . deft)
+  :commands (deft)
+  :config
+  (setq deft-directory (concat gs-mega-dir "/Notes")
+        deft-extensions '("org" "md" "txt")
+        deft-default-extension "org"
+        deft-recursive t
+        deft-use-filename-as-title t
+        deft-use-filter-string-for-filename t)
+  (evil-set-initial-state 'deft-mode 'emacs))
+#+end_src
+
+** AUCTEX / LATEX
+- following if for latex: auctex
+- taken from: https://tex.stackexchange.com/questions/461851/sumatra-pdf-forward-and-inverse-search-emacs
+
+#+begin_src emacs-lisp
+(setq TeX-PDF-mode t)
+(setq TeX-source-correlate-mode t)
+(setq TeX-source-correlate-method 'synctex)
+(setq TeX-view-program-list '(("Sumatra PDF" ("\"C:/Program Files/SumatraPDF/SumatraPDF.exe\" -reuse-instance" (mode-io-correlate " -forward-search %b %n ") " %o"))))
+(eval-after-load 'tex
+ '(progn
+   (assq-delete-all 'output-pdf TeX-view-program-selection)
+   (add-to-list 'TeX-view-program-selection '(output-pdf "Sumatra PDF"))))
+#+end_src
+
+
+- following is from: https://william.famille-blum.org/blog/static.php?page=static081010-000413
+	
+#+begin_src emacs-lisp
+;;(custom-set-variables '(TeX-source-correlate-method (quote synctex)) '(TeX-source-correlate-mode t) '(TeX-source-correlate-start-server t) '(TeX-view-program-list (quote (("Sumatra PDF" "\"C:/Program Files/SumatraPDF/SumatraPDF.exe\" -reuse-instance %o")))))(custom-set-faces)
+;;(eval-after-load 'tex
+ ;;'(progn
+   ;;(assq-delete-all 'output-pdf TeX-view-program-selection)
+   ;;(add-to-list 'TeX-view-program-selection '(output-pdf "Sumatra PDF")))
+ ;;)
+#+end_src
+
+
+** org-gcal for Google Calendar integration
+https://github.com/kidd/org-gcal.el
+https://github.com/mhkc/google-calendar-layer
+https://cestlaz.github.io/posts/using-emacs-26-gcal/#.WIqBud9vGAk
+#+begin_src elisp
+	(use-package org-gcal)
+	(require 'org-gcal)
+	(setq org-gcal-client-id "295390371627-arqhq3ojngln9l4jqsufg97gm4njbkhi.apps.googleusercontent.com")
+	(setq org-gcal-client-secret "Tvc4jv9oJ7ltSxDkHS5adYUH")
+	(setq org-gcal-file-alist '(("c_dkuvktbde55novv834t98om1u0@group.calendar.google.com" . "~/MEGA/Notes/google-org-calendar.org")))
+	;;(setq org-gcal-file-alist '(("c_dkuvktbde55novv834t98om1u0@group.calendar.google.com" . ((concat gs-mega-dir "/Notes/google-org-calendar.org")))))
+#+end_src
+For exporting org-agenda to google calendar, C-x C-w to export from agenda; save it as the file being synced with google calendar shown above.
+Then run org-gcal-sync
+
+
+
+** CSV mode
+#+begin_src elisp
+(use-package csv-mode)
+#+end_src
+
+** Atomic chrome for emacs
+Enables editing any textbox in browser within an emacs window
+https://github.com/alpha22jp/atomic-chrome
+#+begin_src elisp
+(use-package atomic-chrome)
+(require 'atomic-chrome)
+(atomic-chrome-start-server)
+#+end_src
+
+* UI preferences
+** Swap cmd and option key on Mac (make cmd the meta key)
+https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-command/53551
+#+begin_src emacs-lisp
+(cond
+ (*sys/mac* ; Mac OS X
+ ;;((string-equal system-type "darwin") ; Mac OS X
+	(progn
+		(setq mac-option-key-is-meta nil)
+		(setq mac-command-key-is-meta t)
+		(setq mac-command-modifier 'meta)
+		(setq mac-option-modifier nil)
+		(message "Mac OS X"))))
+#+end_src
+
+** Change the color and type of point. Also, stop blinking
+#+begin_src emacs-lisp
+(setq evil-emacs-state-cursor '("blue" box)) 
+(setq evil-normal-state-cursor '("firebrick" box)) 
+(setq evil-visual-state-cursor '("green" box))
+(setq evil-insert-state-cursor '("darkgreen" box))
+(setq evil-replace-state-cursor '("red" bar))
+(setq evil-operator-state-cursor '("red" hollow))
+(blink-cursor-mode 0)
+#+end_src
+** increase default font size to 11 pt
+- values given are in 1/10 pt; so, for 14pt ==> 140
+- this is now set in the .emacs file directly as different machines have different optimal font sizes
+
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :height 110)
+#+end_src
+
+** disable tiny scroll bar of minimuffer window
+
+#+begin_src emacs-lisp
+(set-window-scroll-bars (minibuffer-window) nil nil)
+#+end_src
+
+** pretty faces/fancy lambdas (works with Emacs 24.4+; hence subdued for now)
+
+#+begin_src emacs-lisp
+;; (global-prettify-symbols-mode t)
+#+end_src
+
+** modus-operandi theme
+
+#+begin_src emacs-lisp
+(when (>= emacs-major-version 26)
+  (use-package modus-operandi-theme)
+  (load-theme 'modus-operandi t)
+)
+(print emacs-major-version)
+#+end_src
+
+** use line numbers by default
+
+#+begin_src emacs-lisp
+(if (>= emacs-major-version 26)
+  (global-display-line-numbers-mode)
+  (global-linum-mode)
+)
+(column-number-mode)
+#+end_src
+
+** use visual bell (flash the mode line instead of a bell or whole frame)
+
+#+begin_src emacs-lisp
+(setq visible-bell nil
+      ring-bell-function 'gs/flash-mode-line)
+(defun gs/flash-mode-line ()
+  (invert-face 'mode-line)
+  (run-with-timer 0.1 nil #'invert-face 'mode-line))
+#+end_src
+
+** highlight the current line
+
+#+begin_src emacs-lisp
+  (global-hl-line-mode)
+#+end_src
+
+** convert tabs to spaces, reduce default tab width to 2
+
+#+begin_src emacs-lisp
+  (setq-default tab-width 2)
+;;(setq-default indent-tabs-mode nil)
+#+end_src
+
+** auto-scroll compilation window
+
+#+begin_src emacs-lisp
+  (setq compilation-scroll-output t)
+#+end_src
+
+** set straight the undo and redo functionality in evil
+
+#+begin_src emacs-lisp
+  (use-package undo-tree)
+  (global-undo-tree-mode)
+
+;; this is for undo and redo in evil
+;; following works with emacs 24.4+ (hence commented out for now)
+;;  (with-eval-after-load 'evil-maps
+;;  (define-key evil-normal-state-map "u" 'undo-tree-undo)
+;;  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+;;  )
+
+;; this is for undo and redo in evil
+;; following works with emacs earlier versions
+  (eval-after-load 'evil-maps
+    '(progn
+      (define-key evil-normal-state-map "u" 'undo-tree-undo)
+      (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+     )
+  )
+#+end_src
+
+** for coloring matching parantheses
+
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters)
+#+end_src
+
+** line wrap in LaTeX mode
+
+#+begin_src emacs-lisp
+;;(add-hook 'after-init-hook 'turn-on-auto-fill)
+(add-hook 'LaTeX-mode-hook 'auto-fill-mode)
+;;(global-visual-line-mode t)
+#+end_src
+
+** better scrolling by scrolling only by a line at a time
+
+#+begin_src emacs-lisp
+  (setq scroll-conservatively 100)
+#+end_src
+** Spell check enable in text mode
+http://wordlist.aspell.net/dicts/
+#+begin_src emacs-lisp
+	;; spell checker program
+	(if *sys/win32*
+			(setq ispell-program-name "~/MEGA/hunspell-win32/bin/hunspell")
+		(setq ispell-program-name "hunspell")
+		)
+;; https://200ok.ch/posts/2020-08-22_setting_up_spell_checking_with_multiple_dictionaries.html
+				(with-eval-after-load "ispell"
+					;; Configure `LANG`, otherwise ispell.el cannot find a 'default
+					;; dictionary' even though multiple dictionaries will be configured
+					;; in next line.
+					(setenv "LANG" "en_US")
+					;; Configure two variants of English.
+					(setq ispell-dictionary "en_US")
+					;;(setq ispell-dictionary "en_US,en_GB")
+					;; ispell-set-spellchecker-params has to be called
+					;; before ispell-hunspell-add-multi-dic will work
+					;;(ispell-set-spellchecker-params)
+					;;(ispell-hunspell-add-multi-dic "en_US,en_GB")
+					;; For saving words to the personal dictionary, don't infer it from
+					;; the locale, otherwise it would save to ~/.hunspell_en_US
+					(setq ispell-personal-dictionary "~/.hunspell_personal"))
+
+				;; The personal dictionary file has to exist, otherwise hunspell will
+				;; silently not use it.
+				(unless (file-exists-p ispell-personal-dictionary)
+					(write-region "" nil ispell-personal-dictionary nil 0))
+
+	(use-package flyspell
+		:ensure t
+		:init
+		(add-hook 'org-mode-hook
+							(lambda () (flyspell-mode t))))
+
+#+end_src
+
+#+RESULTS:
+
+
+** Set default applications for opening the relevant files
+- Within Cygwin, open everything with cygstart.exe
+	- It passess it on the Windows and appropriate application is triggered
+
+#+begin_src emacs-lisp
+	(use-package dired-open)
+	 (if (eq system-type 'cygwin)
+		 (progn (setq dired-open-extensions
+					 '(
+							("doc"  . "cygstart")
+							("docx" . "cygstart")
+							("xls"  . "cygstart")
+							("xlsx" . "cygstart")
+							("html" . "cygstart")
+							("htm"  . "cygstart")
+							("pdf"  . "cygstart")
+						)
+						)
+						(setq org-file-apps
+					 '(
+							(auto-mode . emacs)
+							("\\.x?html?\\'" . "cygstart %s")
+							("\\.pdf\\'" . "cygstart %s")
+						)
+						)
+            (message "YYOYO")
+			)
+		)
+#+end_src
+
+* Start server
+	
+#+begin_src emacs-lisp
+;;(server-start)
+#+end_src
+
+
+* ORG-ROAM
+	
+#+begin_src emacs-lisp
+;;(make-directory "~/MEGA/Notes")
+;;(setq org-roam-directory "~/MEGA/Notes")
+;;(add-hook 'after-init-hook 'org-roam-mode)
+;; this helps solve the problem of db update after saving
+;;(setq org-roam-db-update-method 'immediate)
+#+end_src
+
+
+* Setup mu4e email related things
+- Taken from: [[notanumber.io/2016-10-03/better-email-with-mu4e]]
+- Taken from: [[www.djcbsoftware.nl/code/mu/mu4e/Gmail-configuration.html]]
+
+#+begin_src emacs-lisp
+;; mu4e is to be setup only for non-Windows environments
+(require 's)
+;;(if (not (eq system-type 'windows-nt))
+(if (not (eq 1 1))
+  (progn
+  
+  (require 'mu4e)
+
+  ;; mail address and use name
+  (setq user-mail-address "gauravs@iitgn.ac.in"
+        user-full-name "Gaurav Srivastava")
+
+  ;;----------------------------------------------
+  ;;mu4e configuration
+  ;;----------------------------------------------
+  ;; basic configuration
+  (setq mail-user-agent 'mu4e-user-agent
+        mu4e-mu-binary "/usr/bin/mu"
+        mu4e-maildir "~/Maildir/gauravs"
+        mu4e-drafts-folder "/[Gmail].Drafts"
+        mu4e-sent-folder "/[Gmail].All Mail"
+        mu4e-trash-folder "/[Gmail].Trash"
+        mu4e-refile-folder "/[Gmail].All Mail"
+        mu4e-get-mail-command "offlineimap"
+        mu4e-update-interval 300
+        mu4e-view-show-images t
+        mu4e-html2text-command "w3m -dump -T text/html"
+        mu4e-headers-include-related t
+        mu4e-attachment-dir "~/Downloads"
+        mu4e-sent-messages-behavior 'delete
+        mu4e-view-show-images t
+  )
+  ;; use imagemagick if available
+  (when (fboundp 'imagemagick-register-types)
+    (imagemagick-register-types))
+
+  ;; actions
+  ;; enable viewing in browswer
+  (add-to-list 'mu4e-view-actions '("View in browser" . mu4e-action-view-in-browser) t)
+
+  ;; spell check
+  (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
+
+  ;; This hook correctly modifies the \Inbox and \Starred flags on email when they are marked.
+  ;; Without it refiling (archiving) and flagging (starring) email won't properly result in
+  ;; the corresponding gmail action.
+  (add-hook 'mu4e-mark-execute-pre-hook
+	    (lambda (mark msg)
+	      (cond ((member mark '(refile trash)) (mu4e-action-retag-message msg "-\\Inbox"))
+		    ((equal mark 'flag) (mu4e-action-retag-message msg "\\Starred"))
+		    ((equal mark 'unflag) (mu4e-action-retag-message msg "-\\Starred")))))
+  
+  ;;email signature
+  (setq mu4e-compose-signature
+          (concat
+            "Gaurav Srivastava\n"
+            "Associate Professor, Civil Engineering, IITGN\n"
+          )
+  )
+
+  ;; bookmarks for common searches 
+  (setq mu4e-actions-tags-header "X-Keywords")
+  (setq mu4e-bookmarks '(("tag:\\\\Inbox" "Inbox" ?i)
+			                   ("flag:unread" "Unread messages" ?u)
+			                   ("date:today..now" "Today's messages" ?t)
+			                   ("date:7d..now" "Last 7 days" ?w)
+			                   ("mime:image/*" "Messages with images" ?p)))
+
+  ;;----------------------------------------------
+  ;;SMTP configuration
+  ;;----------------------------------------------
+  (require 'smtpmail)
+  (setq smtpmail-smtp-server "smtp.gmail.com"
+        send-mail-function 'smtpmail-send-it
+        message-send-mail-function 'smtpmail-send-it
+        smtpmail-starttls-credentials '(("smtp.gmail.com" "587" nil nil))
+        smtpmail-auth-credentials '(expand-file-name "~/.authinfo")
+        smtpmail-smtp-service 587
+        smtpmail-debug-info t
+  )
+
+  ;; add Cc and Bcc headers to the message buffer
+  (setq message-default-mail-headers "Cc: \nBcc: \n")
+
+  (setq message-kill-buffer-on-exit t)
+
+  ;;----------------------------------------------
+  ;;mu4e + org configuration
+  ;;----------------------------------------------
+  (require 'org-mu4e)
+  (setq org-mu4e-link-query-in-headers-mode nil)
+	
+
+  ;;----------------------------------------------
+  ;;capturing sent-mail in org
+  ;;----------------------------------------------
+	
+))
+#+end_src
+
+
+* Setup notmuch email related things
+- Taken from: [[kkatsuyuki.github.io/notmuch-conf]]
+#+begin_src emacs-lisp
+;; notmuch is to be setup only for non-Windows environments
+(require 's)
+(if (not (eq 1 1))
+;;(if (not (eq system-type 'windows-nt))
+  (progn
+  (require 'notmuch)
+
+  ;; mail address and use name
+  (setq mail-user-agent 'message-user-agent)
+  (setq user-mail-address "gauravs@iitgn.ac.in"
+        user-full-name "Gaurav Srivastava")
+
+  ;;----------------------------------------------
+  ;;notmuch configuration
+  ;;----------------------------------------------
+  (setq notmuch-search-oldest-first nil
+        notmuch-fcc-dirs "~/Maildir/gauravs/[Gmail].Sent Mail"
+        notmuch-mua-compose-in 'new-frame
+  )
+
+  ;;----------------------------------------------
+  ;;SMTP configuration
+  ;;----------------------------------------------
+  (require 'smtpmail)
+  (setq smtpmail-smtp-server "smtp.gmail.com"
+        send-mail-function 'smtpmail-send-it
+        message-send-mail-function 'smtpmail-send-it
+        smtpmail-starttls-credentials '(("smtp.gmail.com" "587" nil nil))
+        smtpmail-auth-credentials '(expand-file-name "~/.authinfo")
+        smtpmail-smtp-service 587
+        smtpmail-debug-info t
+  )
+
+  ;; add Cc and Bcc headers to the message buffer
+  (setq message-default-mail-headers "Cc: \nBcc: \n")
+
+  ;; postponed messages be put in draft directory
+  (setq message-auto-save-directory "~/Maildir/gauravs/[Gmail].Drafts")
+  (setq message-kill-buffer-on-exit t)
+
+  ;; change the directory to store the sent mail
+  (setq message-directory "~/Maildir/gauravs")
+))
+#+end_src
+
+* KEY BINDINGS
+- key bindings for org agenda and others
+	
+#+begin_src emacs-lisp
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-cc" 'org-capture)
+(setq org-log-done t)
+#+end_src
+
+* Registers for quickly opening certain files
+- C-x r j e <reg name> to open
+	
+#+begin_src emacs-lisp
+(set-register ?e (cons 'file "~/.emacs"))
+(set-register ?b (cons 'file "~/.bashrc"))
+(set-register ?l (cons 'file "~/.ledgerrc"))
+(set-register ?E (cons 'file (concat gs-mega-dir "/emacs-config.org")))
+(set-register ?I (cons 'file (concat gs-mega-dir "/Notes/000_Inbox.org")))
+(set-register ?J (cons 'file (concat gs-mega-dir "/ledger/data/journal.ledger")))
+#+end_src
+
+ 

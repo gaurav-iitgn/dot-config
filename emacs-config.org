@@ -788,6 +788,36 @@ https://cestlaz.github.io/posts/using-emacs-26-gcal/#.WIqBud9vGAk
 For exporting org-agenda to google calendar, C-x C-w to export from agenda; save it as the file being synced with google calendar shown above.
 Then run org-gcal-sync
 
+** =org-ref= for bibliography management
+https://github.com/jkitchin/org-ref
+#+begin_src elisp
+		(use-package org-ref)
+		(defconst gs-lit-repo (concat gs-google-dir "/lit_repo"))
+
+	(setq reftex-default-bibliography '((concat gs-google-dir "/lit_repo/all_entries.bib")))
+
+	;; see org-ref for use of these variables
+	(setq org-ref-bibliography-notes (concat gs-lit-repo "/notes.org")
+					;org-ref-default-bibliography '((concat gs-google-dir "/lit_repo/all_entries.bib"))
+					org-ref-default-bibliography '("/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/all_entries.bib")
+					org-ref-pdf-directory gs-lit-repo)
+
+	;following is for helm-bibtex
+		(setq bibtex-completion-bibliography (concat gs-google-dir "/lit_repo/all_entries.bib")
+					bibtex-completion-library-path (concat gs-google-dir "/lit_repo")
+					bibtex-completion-notes-path (concat gs-google-dir "/lit_repo/notes.org"))
+
+		;; open pdf with system pdf viewer (works on mac)
+		(setq bibtex-completion-pdf-open-function
+			(lambda (fpath)
+				(start-process "open" "*open*" "open" fpath)))
+
+		;; alternative
+		;; (setq bibtex-completion-pdf-open-function 'org-open-file)
+
+
+(require 'org-ref)
+#+end_src
 
 
 ** CSV mode

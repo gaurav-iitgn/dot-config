@@ -25,6 +25,7 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
   (setq use-package-always-ensure t)
 #+end_src
 
+
 * Define some constants to make life easy later
 
 #+begin_src emacs-lisp
@@ -91,12 +92,239 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 #+end_src
 
 
-* Utilities
+* UI preferences
+** General preferences
+Display time in the emacs status bar
 #+begin_src emacs-lisp
-;; Change "yes or no" to "y or n"
-(fset 'yes-or-no-p 'y-or-n-p)
+(display-time-mode)
+;;this applies everywhere
+(set-language-environment "UTF-8")
+#+end_src
 
-;; function to reload dot-emacs
+Change "yes or no" to "y or n"
+#+begin_src emacs-lisp
+(fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+** Swap cmd and option key on Mac (make cmd the meta key)
+https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-command/53551
+#+begin_src emacs-lisp
+(cond
+ (*sys/mac* ; Mac OS X
+	(progn
+		(setq mac-option-key-is-meta nil)
+		(setq mac-command-key-is-meta t)
+		(setq mac-command-modifier 'meta)
+		(setq mac-option-modifier nil)
+		(message "Mac OS X"))))
+#+end_src
+
+** Change the color and type of point. Also, stop blinking
+#+begin_src emacs-lisp
+(setq evil-emacs-state-cursor '("blue" box)) 
+(setq evil-normal-state-cursor '("firebrick" box)) 
+(setq evil-visual-state-cursor '("green" box))
+(setq evil-insert-state-cursor '("darkgreen" box))
+(setq evil-replace-state-cursor '("red" bar))
+(setq evil-operator-state-cursor '("red" hollow))
+(blink-cursor-mode 0)
+#+end_src
+** increase default font size to 11 pt
+- values given are in 1/10 pt; so, for 14pt ==> 140
+- this is now set in the .emacs file directly as different machines have different optimal font sizes
+
+#+begin_src emacs-lisp
+(set-face-attribute 'default nil :height 110)
+#+end_src
+
+** disable tiny scroll bar of minimuffer window
+
+#+begin_src emacs-lisp
+(set-window-scroll-bars (minibuffer-window) nil nil)
+#+end_src
+
+** pretty faces/fancy lambdas (works with Emacs 24.4+; hence subdued for now)
+
+#+begin_src emacs-lisp
+;; (global-prettify-symbols-mode t)
+#+end_src
+
+** Highlight the cursor when the window scrolls
+
+#+begin_src emacs-lisp
+(use-package beacon
+  :ensure t
+  :diminish beacon-mode
+  :config
+  (beacon-mode t))
+#+end_src
+
+** modus-operandi theme
+
+#+begin_src emacs-lisp
+(when (>= emacs-major-version 26)
+  (use-package modus-operandi-theme)
+  (load-theme 'modus-operandi t)
+)
+
+(print emacs-major-version)
+#+end_src
+
+** use line numbers and column numbers by default; also show matching parentheses
+
+#+begin_src emacs-lisp
+(if (>= emacs-major-version 26)
+		(global-display-line-numbers-mode)
+	  (global-linum-mode)
+)
+
+(column-number-mode)
+(show-paren-mode 1)
+(setq tab-width 2)
+#+end_src
+
+** use visual bell (flash the mode line instead of a bell or whole frame)
+
+#+begin_src emacs-lisp
+(setq visible-bell nil
+      ring-bell-function 'gs/flash-mode-line)
+(defun gs/flash-mode-line ()
+  (invert-face 'mode-line)
+  (run-with-timer 0.1 nil #'invert-face 'mode-line))
+#+end_src
+
+** highlight the current line
+
+#+begin_src emacs-lisp
+  (global-hl-line-mode)
+#+end_src
+
+** convert tabs to spaces, reduce default tab width to 2
+#+begin_src emacs-lisp
+  (setq-default tab-width 2)
+;;(setq-default indent-tabs-mode nil)
+#+end_src
+
+** auto-scroll compilation window
+
+#+begin_src emacs-lisp
+  (setq compilation-scroll-output t)
+#+end_src
+
+** set straight the undo and redo functionality in evil
+
+#+begin_src emacs-lisp
+  (use-package undo-tree)
+  (global-undo-tree-mode)
+
+;; this is for undo and redo in evil
+;; following works with emacs 24.4+ (hence commented out for now)
+;;  (with-eval-after-load 'evil-maps
+;;  (define-key evil-normal-state-map "u" 'undo-tree-undo)
+;;  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+;;  )
+
+;; this is for undo and redo in evil
+;; following works with emacs earlier versions
+  (eval-after-load 'evil-maps
+    '(progn
+      (define-key evil-normal-state-map "u" 'undo-tree-undo)
+      (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
+     )
+  )
+#+end_src
+
+** for coloring matching parantheses
+
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters)
+#+end_src
+
+** line wrap in LaTeX mode
+
+#+begin_src emacs-lisp
+;;(add-hook 'after-init-hook 'turn-on-auto-fill)
+(add-hook 'LaTeX-mode-hook 'auto-fill-mode)
+;;(global-visual-line-mode t)
+#+end_src
+
+** better scrolling by scrolling only by a line at a time
+
+#+begin_src emacs-lisp
+  (setq scroll-conservatively 100)
+#+end_src
+** Spell check enable in text mode
+http://wordlist.aspell.net/dicts/
+#+begin_src emacs-lisp
+	;; spell checker program
+	(if *sys/win32*
+			(setq ispell-program-name "~/MEGA/hunspell-win32/bin/hunspell")
+		(setq ispell-program-name "hunspell")
+		)
+;; https://200ok.ch/posts/2020-08-22_setting_up_spell_checking_with_multiple_dictionaries.html
+				(with-eval-after-load "ispell"
+					;; Configure `LANG`, otherwise ispell.el cannot find a 'default
+					;; dictionary' even though multiple dictionaries will be configured
+					;; in next line.
+					(setenv "LANG" "en_US")
+					;; Configure two variants of English.
+					(setq ispell-dictionary "en_US")
+					;;(setq ispell-dictionary "en_US,en_GB")
+					;; ispell-set-spellchecker-params has to be called
+					;; before ispell-hunspell-add-multi-dic will work
+					;;(ispell-set-spellchecker-params)
+					;;(ispell-hunspell-add-multi-dic "en_US,en_GB")
+					;; For saving words to the personal dictionary, don't infer it from
+					;; the locale, otherwise it would save to ~/.hunspell_en_US
+					(setq ispell-personal-dictionary "~/.hunspell_personal"))
+
+				;; The personal dictionary file has to exist, otherwise hunspell will
+				;; silently not use it.
+				(unless (file-exists-p ispell-personal-dictionary)
+					(write-region "" nil ispell-personal-dictionary nil 0))
+
+	(use-package flyspell
+		:ensure t
+		:init
+		(add-hook 'org-mode-hook
+							(lambda () (flyspell-mode t))))
+
+#+end_src
+
+
+** Set default applications for opening the relevant files
+- Within Cygwin, open everything with cygstart.exe
+	- It passess it on the Windows and appropriate application is triggered
+
+#+begin_src emacs-lisp
+	(use-package dired-open)
+	 (if (eq system-type 'cygwin)
+		 (progn (setq dired-open-extensions
+					 '(
+							("doc"  . "cygstart")
+							("docx" . "cygstart")
+							("xls"  . "cygstart")
+							("xlsx" . "cygstart")
+							("html" . "cygstart")
+							("htm"  . "cygstart")
+							("pdf"  . "cygstart")
+						)
+						)
+						(setq org-file-apps
+					 '(
+							(auto-mode . emacs)
+							("\\.x?html?\\'" . "cygstart %s")
+							("\\.pdf\\'" . "cygstart %s")
+						)
+						)
+            (message "YYOYO")
+			)
+		)
+#+end_src
+
+* Utilities
+** Function to reload dot-emacs without closing emacs
+#+begin_src emacs-lisp
 (defun gs/reload-dot-emacs ()
   "Save the .emacs buffer if needed, then reload .emacs."
   (interactive)
@@ -105,12 +333,11 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
          (save-buffer (get-file-buffer dot-emacs)))
     (load-file dot-emacs))
   (message "Re-initialized!"))
+#+end_src
 
-;;display time in the emacs status bar
-(display-time-mode)
-
-;; function to rename current buffer
-;; Source: http://www.whattheemacsd.com/
+** Function to rename the current buffer
+Source: http://www.whattheemacsd.com/.
+#+begin_src emacs-lisp
 (defun gs/rename-current-buffer-file ()
   "Renames current buffer and file it is visiting."
   (interactive)
@@ -131,8 +358,9 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 #+end_src
 
 ** When emacs remains idle for 5 minutes, display the agenda
-Taken from: https://lists.gnu.org/archive/html/emacs-orgmode/2010-03/msg00367.html
+- Taken from: https://lists.gnu.org/archive/html/emacs-orgmode/2010-03/msg00367.html
 (John Wiegley)
+- Have disabled it currently; it can be quite nagging.
 #+begin_src elisp
 (defun jump-to-org-agenda ()
   (interactive)
@@ -158,6 +386,16 @@ Taken from: https://lists.gnu.org/archive/html/emacs-orgmode/2010-03/msg00367.ht
   )
 
 ;; (run-with-idle-timer 300 t 'jump-to-org-agenda)
+#+end_src
+
+** Which key
+#+begin_src elisp
+(use-package which-key
+  :ensure t
+  :defer 10
+  :diminish which-key-mode
+  :config
+  (which-key-mode 1))
 #+end_src
 
 
@@ -186,6 +424,7 @@ Of course, this will not work for windows.
 #+begin_src emacs-lisp
 (use-package yasnippet)
 (require 'yasnippet)
+(add-to-list 'yas-snippet-dirs (concat gs-mega-dir "/code/dot-config/yas-snippets"))
 (yas-global-mode 1)
 #+end_src
 
@@ -335,6 +574,7 @@ Of course, this will not work for windows.
 #+begin_src emacs-lisp
 (setq org-src-fontify-natively t)
 (setq org-adapt-indentation nil)
+(setq org-src-preserve-indentation t)
 #+end_src
 
 
@@ -696,22 +936,59 @@ Of course, this will not work for windows.
 
 ** Python configuration
 #+begin_src emacs-lisp
-;;this applies everywhere
-(set-language-environment "UTF-8")
 
-(use-package elpy
-  :ensure t
-  :defer t
-  :init
-  (advice-add 'python-mode :before 'elpy-enable)
-	(setq elpy-rpc-python-command "python3")
-)
+(setq python-shell-interpreter "python3")
+
+
+;(use-package elpy
+;  :ensure t
+;  :defer t
+;  :init
+;  (advice-add 'python-mode :before 'elpy-enable)
+;	(setq elpy-rpc-python-command "python3")
+;)
 
 ;; the following has been set as the system variable $WORKON_HOME 
 ;; (setq elpy-rpc-virtualenv-path "/cygdrive/c/users/gaurav/cyg_python_venv")
 
 (setq python-indent-offset 2)
 
+#+end_src
+
+** Setup language server for relevant ones
+#+begin_src elisp
+(use-package lsp-mode)
+(require 'lsp-mode)
+(add-hook 'go-mode-hook 'lsp-deferred)
+; install server: go get golang.org/x/tools/gopls@latest
+(add-hook 'sh-mode-hook 'lsp-deferred)
+; install server: npm i -g bash-language-server (after brew install npm)
+(add-hook 'python-mode-hook 'lsp-deferred)
+; install server: pip3 install python-language-server[all]
+#+end_src
+** Go language setup
+http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/
+#+begin_src elisp
+(use-package go-mode)
+(use-package go-autocomplete)
+
+;(setenv "GOPATH" (concat gs-mega-dir "/bin/go"))
+(setenv "GOPATH" "/Users/gaurav/MEGA/bin/go")
+(require 'flycheck)
+(global-flycheck-mode 1)
+;
+;; for appropriate formatting
+(defun my-go-mode-hook ()
+  ; Call Gofmt before saving                                                    
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  ; Godef jump key binding                                                      
+  (local-set-key (kbd "M-.") 'godef-jump)
+  (local-set-key (kbd "M-*") 'pop-tag-mark)
+  (auto-complete-mode 1)
+  )
+(add-hook 'go-mode-hook 'my-go-mode-hook)
+(with-eval-after-load 'go-mode
+  (require 'go-autocomplete))
 #+end_src
 
 
@@ -834,213 +1111,6 @@ https://github.com/alpha22jp/atomic-chrome
 (atomic-chrome-start-server)
 #+end_src
 
-* UI preferences
-** Swap cmd and option key on Mac (make cmd the meta key)
-https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-command/53551
-#+begin_src emacs-lisp
-(cond
- (*sys/mac* ; Mac OS X
- ;;((string-equal system-type "darwin") ; Mac OS X
-	(progn
-		(setq mac-option-key-is-meta nil)
-		(setq mac-command-key-is-meta t)
-		(setq mac-command-modifier 'meta)
-		(setq mac-option-modifier nil)
-		(message "Mac OS X"))))
-#+end_src
-
-** Change the color and type of point. Also, stop blinking
-#+begin_src emacs-lisp
-(setq evil-emacs-state-cursor '("blue" box)) 
-(setq evil-normal-state-cursor '("firebrick" box)) 
-(setq evil-visual-state-cursor '("green" box))
-(setq evil-insert-state-cursor '("darkgreen" box))
-(setq evil-replace-state-cursor '("red" bar))
-(setq evil-operator-state-cursor '("red" hollow))
-(blink-cursor-mode 0)
-#+end_src
-** increase default font size to 11 pt
-- values given are in 1/10 pt; so, for 14pt ==> 140
-- this is now set in the .emacs file directly as different machines have different optimal font sizes
-
-#+begin_src emacs-lisp
-(set-face-attribute 'default nil :height 110)
-#+end_src
-
-** disable tiny scroll bar of minimuffer window
-
-#+begin_src emacs-lisp
-(set-window-scroll-bars (minibuffer-window) nil nil)
-#+end_src
-
-** pretty faces/fancy lambdas (works with Emacs 24.4+; hence subdued for now)
-
-#+begin_src emacs-lisp
-;; (global-prettify-symbols-mode t)
-#+end_src
-
-** modus-operandi theme
-
-#+begin_src emacs-lisp
-(when (>= emacs-major-version 26)
-  (use-package modus-operandi-theme)
-  (load-theme 'modus-operandi t)
-)
-(print emacs-major-version)
-#+end_src
-
-** use line numbers by default
-
-#+begin_src emacs-lisp
-(if (>= emacs-major-version 26)
-  (global-display-line-numbers-mode)
-  (global-linum-mode)
-)
-(column-number-mode)
-#+end_src
-
-** use visual bell (flash the mode line instead of a bell or whole frame)
-
-#+begin_src emacs-lisp
-(setq visible-bell nil
-      ring-bell-function 'gs/flash-mode-line)
-(defun gs/flash-mode-line ()
-  (invert-face 'mode-line)
-  (run-with-timer 0.1 nil #'invert-face 'mode-line))
-#+end_src
-
-** highlight the current line
-
-#+begin_src emacs-lisp
-  (global-hl-line-mode)
-#+end_src
-
-** convert tabs to spaces, reduce default tab width to 2
-
-#+begin_src emacs-lisp
-  (setq-default tab-width 2)
-;;(setq-default indent-tabs-mode nil)
-#+end_src
-
-** auto-scroll compilation window
-
-#+begin_src emacs-lisp
-  (setq compilation-scroll-output t)
-#+end_src
-
-** set straight the undo and redo functionality in evil
-
-#+begin_src emacs-lisp
-  (use-package undo-tree)
-  (global-undo-tree-mode)
-
-;; this is for undo and redo in evil
-;; following works with emacs 24.4+ (hence commented out for now)
-;;  (with-eval-after-load 'evil-maps
-;;  (define-key evil-normal-state-map "u" 'undo-tree-undo)
-;;  (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
-;;  )
-
-;; this is for undo and redo in evil
-;; following works with emacs earlier versions
-  (eval-after-load 'evil-maps
-    '(progn
-      (define-key evil-normal-state-map "u" 'undo-tree-undo)
-      (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
-     )
-  )
-#+end_src
-
-** for coloring matching parantheses
-
-#+begin_src emacs-lisp
-  (use-package rainbow-delimiters)
-#+end_src
-
-** line wrap in LaTeX mode
-
-#+begin_src emacs-lisp
-;;(add-hook 'after-init-hook 'turn-on-auto-fill)
-(add-hook 'LaTeX-mode-hook 'auto-fill-mode)
-;;(global-visual-line-mode t)
-#+end_src
-
-** better scrolling by scrolling only by a line at a time
-
-#+begin_src emacs-lisp
-  (setq scroll-conservatively 100)
-#+end_src
-** Spell check enable in text mode
-http://wordlist.aspell.net/dicts/
-#+begin_src emacs-lisp
-	;; spell checker program
-	(if *sys/win32*
-			(setq ispell-program-name "~/MEGA/hunspell-win32/bin/hunspell")
-		(setq ispell-program-name "hunspell")
-		)
-;; https://200ok.ch/posts/2020-08-22_setting_up_spell_checking_with_multiple_dictionaries.html
-				(with-eval-after-load "ispell"
-					;; Configure `LANG`, otherwise ispell.el cannot find a 'default
-					;; dictionary' even though multiple dictionaries will be configured
-					;; in next line.
-					(setenv "LANG" "en_US")
-					;; Configure two variants of English.
-					(setq ispell-dictionary "en_US")
-					;;(setq ispell-dictionary "en_US,en_GB")
-					;; ispell-set-spellchecker-params has to be called
-					;; before ispell-hunspell-add-multi-dic will work
-					;;(ispell-set-spellchecker-params)
-					;;(ispell-hunspell-add-multi-dic "en_US,en_GB")
-					;; For saving words to the personal dictionary, don't infer it from
-					;; the locale, otherwise it would save to ~/.hunspell_en_US
-					(setq ispell-personal-dictionary "~/.hunspell_personal"))
-
-				;; The personal dictionary file has to exist, otherwise hunspell will
-				;; silently not use it.
-				(unless (file-exists-p ispell-personal-dictionary)
-					(write-region "" nil ispell-personal-dictionary nil 0))
-
-	(use-package flyspell
-		:ensure t
-		:init
-		(add-hook 'org-mode-hook
-							(lambda () (flyspell-mode t))))
-
-#+end_src
-
-#+RESULTS:
-
-
-** Set default applications for opening the relevant files
-- Within Cygwin, open everything with cygstart.exe
-	- It passess it on the Windows and appropriate application is triggered
-
-#+begin_src emacs-lisp
-	(use-package dired-open)
-	 (if (eq system-type 'cygwin)
-		 (progn (setq dired-open-extensions
-					 '(
-							("doc"  . "cygstart")
-							("docx" . "cygstart")
-							("xls"  . "cygstart")
-							("xlsx" . "cygstart")
-							("html" . "cygstart")
-							("htm"  . "cygstart")
-							("pdf"  . "cygstart")
-						)
-						)
-						(setq org-file-apps
-					 '(
-							(auto-mode . emacs)
-							("\\.x?html?\\'" . "cygstart %s")
-							("\\.pdf\\'" . "cygstart %s")
-						)
-						)
-            (message "YYOYO")
-			)
-		)
-#+end_src
-
 * Start server
 	
 #+begin_src emacs-lisp
@@ -1059,7 +1129,9 @@ http://wordlist.aspell.net/dicts/
 #+end_src
 
 
-* Setup mu4e email related things
+* Email in emacs
+Not using currently.
+** Setup mu4e email related things
 - Taken from: [[notanumber.io/2016-10-03/better-email-with-mu4e]]
 - Taken from: [[www.djcbsoftware.nl/code/mu/mu4e/Gmail-configuration.html]]
 
@@ -1165,7 +1237,7 @@ http://wordlist.aspell.net/dicts/
 #+end_src
 
 
-* Setup notmuch email related things
+** Setup notmuch email related things
 - Taken from: [[kkatsuyuki.github.io/notmuch-conf]]
 #+begin_src emacs-lisp
 ;; notmuch is to be setup only for non-Windows environments
@@ -1233,6 +1305,7 @@ http://wordlist.aspell.net/dicts/
 (set-register ?E (cons 'file (concat gs-mega-dir "/emacs-config.org")))
 (set-register ?I (cons 'file (concat gs-mega-dir "/Notes/000_Inbox.org")))
 (set-register ?J (cons 'file (concat gs-mega-dir "/ledger/data/journal.ledger")))
+(set-register ?C (cons 'file (concat gs-mega-dir "/bin/gen_cat.csv")))
 #+end_src
 
  

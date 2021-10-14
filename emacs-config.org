@@ -4,10 +4,10 @@
 
 * Initialize package manager
 #+begin_src emacs-lisp
-(package-initialize)
 (require 'package)
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 (add-to-list 'package-archives '("melpa" .  "https://melpa.org/packages/") t)
+(package-initialize)
 #+end_src
 
 * Configure =use-package=
@@ -104,6 +104,11 @@ Display time in the emacs status bar
 Change "yes or no" to "y or n"
 #+begin_src emacs-lisp
 (fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+Display backtrace on error
+#+begin_src emacs-lisp
+(setq debug-on-error t)
 #+end_src
 
 ** Swap cmd and option key on Mac (make cmd the meta key)
@@ -274,14 +279,13 @@ http://wordlist.aspell.net/dicts/
 					;; before ispell-hunspell-add-multi-dic will work
 					;;(ispell-set-spellchecker-params)
 					;;(ispell-hunspell-add-multi-dic "en_US,en_GB")
+
 					;; For saving words to the personal dictionary, don't infer it from
 					;; the locale, otherwise it would save to ~/.hunspell_en_US
-					(setq ispell-personal-dictionary "~/.hunspell_personal"))
-
-				;; The personal dictionary file has to exist, otherwise hunspell will
-				;; silently not use it.
-				(unless (file-exists-p ispell-personal-dictionary)
-					(write-region "" nil ispell-personal-dictionary nil 0))
+          ;; do this only when this file exists
+          (defconst gs-dictionary "~/.hunspell_personal")
+          (if (file-exists-p gs-dictionary)
+            (setq ispell-personal-dictionary "~/.hunspell_personal")))
 
 	(use-package flyspell
 		:ensure t
@@ -1067,30 +1071,33 @@ Then run org-gcal-sync
 
 ** =org-ref= for bibliography management
 https://github.com/jkitchin/org-ref
+https://www.anand-iyer.com/blog/2017/research-literature-management-with-emacs
 #+begin_src elisp
-		(use-package org-ref)
-		(defconst gs-lit-repo (concat gs-google-dir "/lit_repo"))
+(use-package org-ref)
+(use-package helm-bibtex)
+(defconst gs-lit-repo (concat gs-google-dir "/lit_repo"))
 
-	(setq reftex-default-bibliography '((concat gs-google-dir "/lit_repo/all_entries.bib")))
+;(setq org-ref-bibliography-notes "G:\My Drive\New_System\lit_repo\notes.org"
+;			org-ref-default-bibliography '("G:\My Drive\New_System\lit_repo\all_entries.bib")
+;			org-ref-pdf-directory "G:\My Drive\New_System\lit_repo\notes.org")
 
-	;; see org-ref for use of these variables
-	(setq org-ref-bibliography-notes (concat gs-lit-repo "/notes.org")
-					;org-ref-default-bibliography '((concat gs-google-dir "/lit_repo/all_entries.bib"))
-					org-ref-default-bibliography '("/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/all_entries.bib")
-					org-ref-pdf-directory gs-lit-repo)
+;; see org-ref for use of these variables
+(setq org-ref-bibliography-notes "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/notes.org"
+      org-ref-default-bibliography '("/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/all_entries.bib")
+      org-ref-pdf-directory "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo")
 
-	;following is for helm-bibtex
-		(setq bibtex-completion-bibliography (concat gs-google-dir "/lit_repo/all_entries.bib")
-					bibtex-completion-library-path (concat gs-google-dir "/lit_repo")
-					bibtex-completion-notes-path (concat gs-google-dir "/lit_repo/notes.org"))
-
-		;; open pdf with system pdf viewer (works on mac)
-		(setq bibtex-completion-pdf-open-function
-			(lambda (fpath)
-				(start-process "open" "*open*" "open" fpath)))
-
-		;; alternative
-		;; (setq bibtex-completion-pdf-open-function 'org-open-file)
+;following is for helm-bibtex
+;	(setq bibtex-completion-bibliography (concat gs-google-dir "/lit_repo/all_entries.bib")
+;	      bibtex-completion-library-path (concat gs-google-dir "/lit_repo")
+;	      bibtex-completion-notes-path (concat gs-google-dir "/lit_repo/notes.org"))
+;
+;	;; open pdf with system pdf viewer (works on mac)
+;	(setq bibtex-completion-pdf-open-function
+;		(lambda (fpath)
+;			(start-process "open" "*open*" "open" fpath)))
+;
+;	;; alternative
+;	;; (setq bibtex-completion-pdf-open-function 'org-open-file)
 
 
 (require 'org-ref)
@@ -1292,6 +1299,7 @@ Not using currently.
 (global-set-key "\C-ca" 'org-agenda)
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-cc" 'org-capture)
+(global-set-key "\C-cq" 'save-buffers-kill-emacs)
 (setq org-log-done t)
 #+end_src
 
@@ -1306,6 +1314,7 @@ Not using currently.
 (set-register ?I (cons 'file (concat gs-mega-dir "/Notes/000_Inbox.org")))
 (set-register ?J (cons 'file (concat gs-mega-dir "/ledger/data/journal.ledger")))
 (set-register ?C (cons 'file (concat gs-mega-dir "/bin/gen_cat.csv")))
+(set-register ?R (cons 'file (concat gs-google-dir "/lit_repo/all_entries.bib")))
 #+end_src
 
  

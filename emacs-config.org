@@ -710,84 +710,40 @@ Of course, this will not work for windows.
   ;; this specifies whether the related documents are on MEGA, Dropbox,
   ;; Google Drive or NAS 
   ;; this keyword is DOCDIR -- must be defined in the PROPERTIES of the headline
+  ;;get the identifier for file location
   (setq mydocdirstr (car (org-property-values "DOCDIR")))
   (setq mybasedir gs-google-dir)
+  ;;set full base directory depending on the file location identifier
   (cond 
     ((equal mydocdirstr "google")(setq mybasedir gs-google-dir))
     ((equal mydocdirstr "dropbox")(setq mybasedir gs-dropbox-dir))
     ((equal mydocdirstr "mega")(setq mybasedir gs-mega-dir))
     ((equal mydocdirstr "nas")(setq mybasedir gs-nas-dir))
   )
-	
-  ;;(print mybasedir)
-	
 	;; obtain the FIRST tag of the headline
   ;; this should be in the format XXX_Y_Z where X, Y, Z are all numbers (e.g. 405_2_1)
 	;; it is assumed that the classified will be the FIRST tag among others for the headine
 	(setq mytag (car (org-get-tags)))
-	
-  ;;(print (concat "mytag1: " mytag  "_1end"))
-	
+
 	;; replace _ with . to enable mapping with directory names
   (setq mytag (s-replace "_" "." mytag))
-  
-  ;;(print (concat "mytag2: " mytag  "_2end"))
 
   ;; build directory name
   (setq mydir (concat mybasedir "/" mytag "_*"))
-	
-  ;;(print (concat "mydir1: " mydir  "_1end"))
 	
   ;; expand the wildcard to get full name
 	;; file-expand-wildcards returns a list; pick the first element with car
   ;;(setq mydir (file-expand-wildcards mydir))
   (setq mydir (car (file-expand-wildcards mydir)))
-	
-  ;;(print (concat "mydir2: " mydir  "_2end"))
-	
+
+
   ;; open this directory in a new frame of emacs (within dired)
-  ;; (dired-other-frame mydir)
+  ;;(dired-other-frame mydir)
 
-  ;; for wsl on windows, need to convert /mnt/c to C:
-  (when (and (s-contains? "explorer" gs-file-manager) (not (eq system-type 'windows-nt)))
-	  ;;remove /mnt/
-		;;(print "In a WSL environment")
-		;;(print (concat "Before: " mydir))
-    (setq mydir (s-replace "\/mnt\/" "//" mydir))
-		;;(print (concat "After: " mydir))
-		
-		;;Now, the drive letter will be at the third position:
-		;; like: / / c / ... or / / g / ... 
-		;; check if first two characters are /, third is an alphabet and fourth is a /
-    ;; if yes, remove the first to /'s, insert a : after the alphabet (drive letter)
-		;; before processing: / / a / remaining/path
-		;;                    0 1 2 3 ...
-		;; obtain substring up to 3:
-		(setq drivesubstr (car (s-match "^//[a-z]" mydir)))
-		(when (> (length drivesubstr) 0)
-		  ;;work with drivesubstr to get the drive letter
-			;;drivesubstr should be of the following form:
-			;;                    / / a 
-			;;                    0 1 2 
-			;; remove first two / / to get the drive letter
-			(setq driveletter (s-replace "\/\/" "" drivesubstr))
-			
-			;; replace //c/ with c:/ in the mydir
-			;; searching will be based on driveletter
-			(setq mydir (s-replace (concat "\/\/" driveletter "\/") (concat driveletter "\:\/") mydir))
-		)
-  )
-	;;(print mydir)
-
-  ;; for windows, convert forward slashes to backward slashes in the filepath
-  (when (s-contains? "explorer" gs-file-manager)
-    (setq mydir (s-replace "/" "\\" mydir))
-		;;also add quotes
-		(setq mydir (s-concat "\"" mydir "\""))
-  )
-  ;; open this directory in the file manager of the OS
-  ;;(print (concat "> " gs-file-manager mydir " <"))
-  (shell-command (concat gs-file-manager mydir))
+  ;; open this directory with system's file viewer
+  ;; replaces spaces with escaped ones for use with system's file viewer
+  (setq mydirsys (s-replace " " "\\ " mydir))
+  (shell-command (concat gs-file-manager mydirsys))
 )
 #+end_src
 
@@ -1705,7 +1661,7 @@ Not using currently.
 (set-register ?e (cons 'file "~/.emacs"))
 (set-register ?b (cons 'file "~/.bashrc"))
 (set-register ?l (cons 'file "~/.ledgerrc"))
-(set-register ?E (cons 'file (concat gs-mega-dir "/emacs-config.org")))
+(set-register ?E (cons 'file (concat gs-mega-dir "/code/dot-config/emacs/emacs-config.org")))
 (set-register ?I (cons 'file (concat gs-mega-dir "/Notes/000_Inbox.org")))
 (set-register ?J (cons 'file (concat gs-mega-dir "/ledger/data/journal.ledger")))
 (set-register ?C (cons 'file (concat gs-mega-dir "/bin/gen_cat.csv")))

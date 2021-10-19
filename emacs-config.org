@@ -111,6 +111,19 @@ Display backtrace on error
 (setq debug-on-error t)
 #+end_src
 
+** Set a different backup director to prevent cluttering
+https://stackoverflow.com/questions/2680389/how-to-remove-all-files-ending-with-made-by-emacs/2680682
+#+begin_src emacs-lisp
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+  backup-by-copying t    ; Don't delink hardlinks
+  version-control t      ; Use version numbers on backups
+  delete-old-versions t  ; Automatically delete excess backups
+  kept-new-versions 20   ; how many of the newest versions to keep
+  kept-old-versions 5    ; and how many of the old
+  )
+#+end_src
+
+
 ** Swap cmd and option key on Mac (make cmd the meta key)
 https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-command/53551
 #+begin_src emacs-lisp
@@ -974,7 +987,7 @@ Of course, this will not work for windows.
 http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/
 #+begin_src elisp
 (use-package go-mode)
-(use-package go-autocomplete)
+;(use-package go-autocomplete)
 
 ;(setenv "GOPATH" (concat gs-mega-dir "/bin/go"))
 (setenv "GOPATH" "/Users/gaurav/MEGA/bin/go")
@@ -991,8 +1004,7 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
   (auto-complete-mode 1)
   )
 (add-hook 'go-mode-hook 'my-go-mode-hook)
-(with-eval-after-load 'go-mode
-  (require 'go-autocomplete))
+;(with-eval-after-load 'go-mode (require 'go-autocomplete))
 #+end_src
 
 
@@ -1069,10 +1081,30 @@ https://cestlaz.github.io/posts/using-emacs-26-gcal/#.WIqBud9vGAk
 For exporting org-agenda to google calendar, C-x C-w to export from agenda; save it as the file being synced with google calendar shown above.
 Then run org-gcal-sync
 
+** =paperless= for document filing (mainly papers)
+https://github.com/atgreen/paperless
+#+begin_src elisp
+(use-package ido-completing-read+)
+(use-package paperless)
+(custom-set-variables
+ '(paperless-capture-directory "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/paperless/downloads")
+ '(paperless-root-directory "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/paperless/filed"))
+#+end_src
+
+** =ebib= for bibliography management
+https://joostkremers.github.io/ebib/ebib-manual.html
+#+begin_src elisp
+(use-package ebib)
+(use-package helm-bibtex)
+(defconst gs-lit-repo (concat gs-google-dir "/lit_repo"))
+
+#+end_src
+
+
 ** =org-ref= for bibliography management
 https://github.com/jkitchin/org-ref
 https://www.anand-iyer.com/blog/2017/research-literature-management-with-emacs
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (use-package org-ref)
 (use-package helm-bibtex)
 (defconst gs-lit-repo (concat gs-google-dir "/lit_repo"))

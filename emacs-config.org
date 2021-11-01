@@ -1586,7 +1586,7 @@ Not using currently.
 (set-register ?e (cons 'file "~/.emacs"))
 (set-register ?b (cons 'file "~/.bashrc"))
 (set-register ?l (cons 'file "~/.ledgerrc"))
-(set-register ?E (cons 'file "~/code/dot-config/emacs/emacs-config.org"))
+(set-register ?E (cons 'file "~/code/dot-config/emacs-config.org"))
 (set-register ?I (cons 'file (concat gs-mega-dir "/Notes/000_Inbox.org")))
 (set-register ?J (cons 'file (concat gs-mega-dir "/ledger/data/journal.ledger")))
 (set-register ?C (cons 'file (concat gs-mega-dir "/bin/gen_cat.csv")))

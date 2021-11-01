@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Docdir
+# key: docdir
+# --
+:PROPERTIES:
+:DOCDIR: $0
+:END:

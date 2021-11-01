@@ -195,6 +195,7 @@ https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-comm
 
 (column-number-mode)
 (show-paren-mode 1)
+(global-visual-line-mode t)
 #+end_src
 
 ** Use visual bell (flash the mode line instead of a bell or whole frame).
@@ -321,6 +322,9 @@ Download hunspell from here: http://wordlist.aspell.net/dicts/
 						)
 			);progn
 		);if-cygwin
+
+; disable validation link in HTML export
+(setq org-html-validation-link nil)
 #+end_src
 
 
@@ -396,7 +400,7 @@ Of course, this will not work for windows.
 #+begin_src emacs-lisp
 (use-package yasnippet)
 (require 'yasnippet)
-(add-to-list 'yas-snippet-dirs (concat gs-mega-dir "/code/dot-config/yas-snippets"))
+(add-to-list 'yas-snippet-dirs "~/code/dot-config/yas-snippets")
 (yas-global-mode 1)
 #+end_src
 
@@ -416,6 +420,14 @@ Of course, this will not work for windows.
 (use-package evil)
 (require 'evil)
 (evil-mode t)
+;; Make movement keys behave appropriately when visual-line-mode wraps lines
+;; https://stackoverflow.com/questions/20882935/how-to-move-between-visual-lines-and-move-past-newline-in-evil-mode
+(define-key evil-normal-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
+(define-key evil-normal-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
+(define-key evil-motion-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
+(define-key evil-motion-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
+; Make horizontal movement cross lines                                    
+(setq-default evil-cross-lines t)
 #+end_src
 
 ** ORG -- enable and configure different things
@@ -641,9 +653,14 @@ Of course, this will not work for windows.
   ;; open this directory with system's file viewer
   ;; replaces spaces with escaped ones for use with system's file viewer
   ;;(if (s-match " " mydir) ;;it should be like this ideally
-  (if (equal mydocdirstr "google") ;this will have a space on Mac
+  (if (and *sys/mac* (equal mydocdirstr "google")) ;this will have a space on Mac
 		(setq mydirsys (s-replace " " "\\ " mydir))
 		(setq mydirsys mydir)
+	)
+
+  ;;on Windows, replace / with \ in filepath before sending it to explorer
+  (if *sys/win32*
+		(setq mydirsys (s-replace "/" "\\" mydir))
 	)
   (shell-command (concat gs-file-manager mydirsys))
 )
@@ -804,7 +821,11 @@ Of course, this will not work for windows.
 	 'auto-mode-alist
 	 '("\\.m$" . matlab-mode))
 	(setq matlab-indent-function t)
-	(setq matlab-shell-command "matlab")
+	;;tried but doesn't work on windows
+	(if *sys/win32*
+		(setq matlab-shell-command "C:\\Program Files\\MATLAB\\R2017a\\bin\\MATLAB.exe"))
+	(if (or *sys/mac* *sys/linux*)
+		(setq matlab-shell-command "matlab"))
 
 
 #+end_src
@@ -841,14 +862,18 @@ Of course, this will not work for windows.
 (add-hook 'python-mode-hook 'lsp-deferred)
 ; install server: pip3 install python-language-server[all]
 #+end_src
+** Yaml
+#+begin_src elisp
+(use-package yaml)
+(use-package yaml-mode)
+#+end_src
 ** Go language setup
 http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/
 #+begin_src elisp
 (use-package go-mode)
-;(use-package go-autocomplete)
 
 ;(setenv "GOPATH" (concat gs-mega-dir "/bin/go"))
-(setenv "GOPATH" "/Users/gaurav/MEGA/bin/go")
+(setenv "GOPATH" "/Users/gaurav/go")
 (require 'flycheck)
 (global-flycheck-mode 1)
 ;
@@ -860,9 +885,13 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
   (local-set-key (kbd "M-.") 'godef-jump)
   (local-set-key (kbd "M-*") 'pop-tag-mark)
   (auto-complete-mode 1)
+	; Customize compile command to run go build
+  (if (not (string-match "go" compile-command))
+      (set (make-local-variable 'compile-command)
+           "go build -v && go test -v && go vet"))
   )
 (add-hook 'go-mode-hook 'my-go-mode-hook)
-;(with-eval-after-load 'go-mode (require 'go-autocomplete))
+
 #+end_src
 
 
@@ -1368,6 +1397,14 @@ https://github.com/alpha22jp/atomic-chrome
 (atomic-chrome-start-server)
 #+end_src
 
+** HTTPD service for localhost
+#+begin_src elisp
+(use-package simple-httpd
+  :ensure t)
+(httpd-serve-directory "~/code/gaurav-iitgn.github.io/my-org-site/public")
+
+#+end_src
+
 * Start server
 	
 #+begin_src emacs-lisp
@@ -1549,7 +1586,7 @@ Not using currently.
 (set-register ?e (cons 'file "~/.emacs"))
 (set-register ?b (cons 'file "~/.bashrc"))
 (set-register ?l (cons 'file "~/.ledgerrc"))
-(set-register ?E (cons 'file (concat gs-mega-dir "/code/dot-config/emacs/emacs-config.org")))
+(set-register ?E (cons 'file "~/code/dot-config/emacs/emacs-config.org"))
 (set-register ?I (cons 'file (concat gs-mega-dir "/Notes/000_Inbox.org")))
 (set-register ?J (cons 'file (concat gs-mega-dir "/ledger/data/journal.ledger")))
 (set-register ?C (cons 'file (concat gs-mega-dir "/bin/gen_cat.csv")))

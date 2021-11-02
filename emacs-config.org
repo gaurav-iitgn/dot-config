@@ -953,21 +953,6 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 #+end_src
 
 
-** org-gcal for Google Calendar integration
-https://github.com/kidd/org-gcal.el
-https://github.com/mhkc/google-calendar-layer
-https://cestlaz.github.io/posts/using-emacs-26-gcal/#.WIqBud9vGAk
-#+begin_src elisp
-	(use-package org-gcal)
-	(require 'org-gcal)
-	(setq org-gcal-client-id "295390371627-arqhq3ojngln9l4jqsufg97gm4njbkhi.apps.googleusercontent.com")
-	(setq org-gcal-client-secret "Tvc4jv9oJ7ltSxDkHS5adYUH")
-	(setq org-gcal-file-alist '(("c_dkuvktbde55novv834t98om1u0@group.calendar.google.com" . "~/MEGA/Notes/google-org-calendar.org")))
-	;;(setq org-gcal-file-alist '(("c_dkuvktbde55novv834t98om1u0@group.calendar.google.com" . ((concat gs-mega-dir "/Notes/google-org-calendar.org")))))
-#+end_src
-For exporting org-agenda to google calendar, C-x C-w to export from agenda; save it as the file being synced with google calendar shown above.
-Then run org-gcal-sync
-
 ** =paperless= for document filing (mainly papers)
 https://github.com/atgreen/paperless
 #+begin_src elisp

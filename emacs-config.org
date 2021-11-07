@@ -107,8 +107,13 @@ Change "yes or no" to "y or n" for faster response.
 #+end_src
 
 Display backtrace on error by default.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (setq debug-on-error t)
+#+end_src
+
+Default image width
+#+begin_src emacs-lisp
+(setq org-image-actual-width (list 400))
 #+end_src
 
 ** Set a different backup directory to prevent cluttering
@@ -138,6 +143,7 @@ https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-comm
 #+end_src
 
 ** Change the color and type of point. Also, stop blinking.
+Disabling for now to see if it enhances working speed.
 #+begin_src emacs-lisp
 (setq evil-emacs-state-cursor '("blue" box)) 
 (setq evil-normal-state-cursor '("firebrick" box)) 
@@ -164,8 +170,8 @@ https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-comm
 
 
 ** Highlight the cursor when the window scrolls.
-
-#+begin_src emacs-lisp
+Disabling for speed.
+#+begin_src emacs-lisp :tangle no
 (use-package beacon
   :ensure t
   :diminish beacon-mode
@@ -173,15 +179,10 @@ https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-comm
   (beacon-mode t))
 #+end_src
 
-** Enable modus-operandi theme
-
+** Enable leuven theme
 #+begin_src emacs-lisp
-(when (>= emacs-major-version 26)
-  (use-package modus-operandi-theme)
-  (load-theme 'modus-operandi t)
-)
+(load-theme 'leuven t)
 
-(print emacs-major-version)
 #+end_src
 
 ** Line numbers and such.
@@ -783,15 +784,16 @@ Of course, this will not work for windows.
         helm-ff-search-library-in-sexp        t
         helm-ff-file-name-history-use-recentf t)
 
-  (setq helm-google-suggest-use-curl-p t)
+  ;;for speed
+  ;;(setq helm-google-suggest-use-curl-p t)
 
   ;; keep follow-mode in between helm sessions once activated
   (setq helm-follow-mode-persistent t)
 
   ;; Smaller helm window
-  ;;(setq helm-autoresize-max-height 0)
-  ;;(setq helm-autoresize-min-height 30)
-  ;;(helm-autoresize-mode 1)
+  (setq helm-autoresize-max-height 0)
+  (setq helm-autoresize-min-height 30)
+  (helm-autoresize-mode 1)
 
   ;; Don't show details in helm-mini for tramp buffers
   (setq helm-buffer-skip-remote-checking t)
@@ -805,7 +807,7 @@ Of course, this will not work for windows.
                                     helm-source-buffer-not-found))
 
   ;;(substitute-key-definition 'find-tag 'helm-etags-select global-map)
-  ;;(setq projectile-completion-system 'helm)
+  (setq projectile-completion-system 'helm)
 
 )
 (define-key evil-ex-map "b" 'helm-buffers-list)
@@ -1388,6 +1390,34 @@ https://github.com/alpha22jp/atomic-chrome
   :ensure t)
 (httpd-serve-directory "~/code/gaurav-iitgn.github.io/my-org-site/public")
 
+#+end_src
+
+
+** Better window management with ace-window and winner-mode
+#+begin_src elisp
+(use-package ace-window)
+(global-set-key (kbd "M-o") 'ace-window)
+; set switch window keys to home row
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+
+(setq aw-dispatch-always t)
+
+(winner-mode 1)
+
+; start in maximized mode always
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+#+end_src
+
+
+** Projectile for project management
+#+begin_src elisp
+(use-package projectile)
+(projectile-mode +1)
+;; Recommended keymap prefix on macOS and others (Windows/Linux)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+;(if *sys/mac*
+		;(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+		;(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 #+end_src
 
 * Start server

@@ -266,26 +266,6 @@ Download hunspell from here: http://wordlist.aspell.net/dicts/
 	(if *sys/win32*
 		(setq ispell-program-name "~/MEGA/hunspell-win32/bin/hunspell")
 		(setq ispell-program-name "hunspell"))
-;; https://200ok.ch/posts/2020-08-22_setting_up_spell_checking_with_multiple_dictionaries.html
-				(with-eval-after-load "ispell"
-					;; Configure `LANG`, otherwise ispell.el cannot find a 'default
-					;; dictionary' even though multiple dictionaries will be configured
-					;; in next line.
-					(setenv "LANG" "en_US")
-					;; Configure two variants of English.
-					(setq ispell-dictionary "en_US")
-					;;(setq ispell-dictionary "en_US,en_GB")
-					;; ispell-set-spellchecker-params has to be called
-					;; before ispell-hunspell-add-multi-dic will work
-					;;(ispell-set-spellchecker-params)
-					;;(ispell-hunspell-add-multi-dic "en_US,en_GB")
-
-					;; For saving words to the personal dictionary, don't infer it from
-					;; the locale, otherwise it would save to ~/.hunspell_en_US
-          ;; do this only when this file exists
-          (defconst gs-dictionary "~/.hunspell_personal")
-          (if (file-exists-p gs-dictionary)
-            (setq ispell-personal-dictionary "~/.hunspell_personal")))
 
 	(use-package flyspell
 		:ensure t

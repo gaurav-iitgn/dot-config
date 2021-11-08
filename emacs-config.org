@@ -787,8 +787,6 @@ Of course, this will not work for windows.
                                     helm-source-buffer-not-found))
 
   ;;(substitute-key-definition 'find-tag 'helm-etags-select global-map)
-  (setq projectile-completion-system 'helm)
-
 )
 (define-key evil-ex-map "b" 'helm-buffers-list)
 (helm-mode 1)
@@ -1391,13 +1389,28 @@ https://github.com/alpha22jp/atomic-chrome
 
 ** Projectile for project management
 #+begin_src elisp
-(use-package projectile)
-(projectile-mode +1)
-;; Recommended keymap prefix on macOS and others (Windows/Linux)
-(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
-;(if *sys/mac*
-		;(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-		;(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode 1)
+  :custom ((projectile-completion-system 'helm))
+	:bind-keymap ("C-c p" . projectile-command-map)
+	:init
+  (when (file-directory-p "~/code")
+    (setq projectile-project-search-path '("~/code")))
+		(setq projectile-switch-project-action #'projectile-dired)
+)
+#+end_src
+
+** Magit
+#+begin_src elisp
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+)
+
+;(use-package evil-magit
+;  :after magit
+;)
 #+end_src
 
 * Start server

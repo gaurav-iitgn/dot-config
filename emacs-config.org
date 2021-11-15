@@ -179,9 +179,41 @@ Disabling for speed.
   (beacon-mode t))
 #+end_src
 
-** Enable leuven theme
-#+begin_src emacs-lisp
-(load-theme 'leuven t)
+** Enable leuven theme and configure doom modeline
+Not using leuven now. Doom modeline colors are not good for this.
+Will customize this sometime. But using the default theme until then.
+#+begin_src emacs-lisp 
+;(load-theme 'leuven t)
+(use-package all-the-icons)
+(use-package doom-modeline
+  :ensure t
+  :init
+  (doom-modeline-mode 1)
+  (setq doom-modeline-height 8)
+)
+
+#+end_src
+
+** Use doom themes
+Didn't find anything better then leuven to my liking.
+#+begin_src emacs-lisp :tangle no
+(use-package doom-themes
+  :ensure t
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one-light t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
 #+end_src
 
@@ -554,6 +586,10 @@ Of course, this will not work for windows.
 
 #+begin_src emacs-lisp
 (use-package evil-org
+  ;added as temporary fix to a bug
+  ;https://github.com/Somelauw/evil-org-mode/issues/93
+  :init
+  (fset 'evil-redirect-digit-argument 'ignore)
   :after org
   :config
   (add-hook 'org-mode-hook 'evil-org-mode)
@@ -794,13 +830,36 @@ Of course, this will not work for windows.
 
 
 ** Matlab 
+https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 #+begin_src emacs-lisp
+(add-to-list 'load-path "~/code/matlab/matlab-emacs-src")
+(require 'matlab-load)
+(setq matlab-shell-command "~/code/matlab_emacs_wrapper")
+(setq matlab-shell-command-switches (list "-nodesktop"))
+;; setup matlab in babel
+(setq org-babel-default-header-args:matlab
+  '((:results . "output") (:session . "*MATLAB*")))
+
+;; list of babel languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((matlab . t)
+   ))
+#+end_src
+
+
+#+begin_src emacs-lisp :tangle no
+;(load-library "matlab-load")
+;(setq matlab-shell-command "/Applications/MATLAB_R2020a.app/bin/matlab")
+;(customize-set-variable 'matlab-shell-command "~/code/matlab_emacs_wrapper")
+; add for org-mode babel
+(add-to-list
+'auto-mode-alist
+'("\\.m$" . matlab-mode))
+(setq matlab-indent-function t)
+
 ;;(use-package matlab-mode)
 	(autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
-	(add-to-list
-	 'auto-mode-alist
-	 '("\\.m$" . matlab-mode))
-	(setq matlab-indent-function t)
 	;;tried but doesn't work on windows
 	(if *sys/win32*
 		(setq matlab-shell-command "C:\\Program Files\\MATLAB\\R2017a\\bin\\MATLAB.exe"))
@@ -943,409 +1002,82 @@ https://github.com/atgreen/paperless
  '(paperless-root-directory "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/paperless/filed"))
 #+end_src
 
-** =ebib= for bibliography management
-https://joostkremers.github.io/ebib/ebib-manual.html
-#+begin_src elisp
-(use-package ebib)
-(use-package helm-bibtex)
-(defconst gs-lit-repo (concat gs-google-dir "/lit_repo"))
 
-#+end_src
-
-
-** =org-ref= for bibliography management
-https://github.com/jkitchin/org-ref
-https://www.anand-iyer.com/blog/2017/research-literature-management-with-emacs
+** =org-ref= and =helm-bibtex= for bibliography management
+https://github.com/jkitchin/org-ref/
+https://github.com/jkitchin/org-ref/blob/master/org-ref.org
+https://github.com/tmalsburg/helm-bibtex
 #+begin_src elisp :tangle no
-(use-package org-ref)
+(defvar gs-lit-repo (concat gs-google-dir "/lit_repo"))
+(use-package pdf-tools
+  :ensure t
+  :config
+  (custom-set-variables 
+    '(pdf-tools-handle-upgrades nil)) ;upgrade using brew manually
+  (setq pdf-info-epdfinfo-program "/usr/local/bin/epdfinfo")
+  (setq-default pdf-view-display-size 'fit-page)
+  (setq pdf-annot-activate-created-annotations t)
+  ;(define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+)
+
+(use-package bibtex-completion)
 (use-package helm-bibtex)
-(defconst gs-lit-repo (concat gs-google-dir "/lit_repo"))
+(use-package org-ref)
+;(autoload 'helm-bibtex "helm-bibtex" "" t)
+; location of bib file
+(setq bibtex-completion-bibliography
+      '("/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/master_database.bib"))
+; location of PDF files
+(setq bibtex-completion-library-path 
+      '("/Users/gaurav/Google Drive/My Drive/New_System/lit_repo"))
+; Bibtex entry field that has file name information (for compatibility with JabRef)
+(setq bibtex-completion-pdf-field "File")
+; location of notes linked with PDF files (one file per publication)
+; notes will be created as bibtex-key.org
+(setq bibtex-completion-notes-path
+      "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/my-notes")
+(setq bibtex-completion-notes-template-multiple-files "* ${author-or-editor}, ${title}, ${journal}, (${year}) :${=type=}: \n\nSee [[cite:&${=key=}]]\n")
+; display formats
+(setq bibtex-completion-display-formats
+	'((article       . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${journal:40}")
+	  (inbook        . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} Chapter ${chapter:32}")
+	  (incollection  . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
+	  (inproceedings . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*} ${booktitle:40}")
+	  (t             . "${=has-pdf=:1}${=has-note=:1} ${year:4} ${author:36} ${title:*}"))
+)
 
-;(setq org-ref-bibliography-notes "G:\My Drive\New_System\lit_repo\notes.org"
-;			org-ref-default-bibliography '("G:\My Drive\New_System\lit_repo\all_entries.bib")
-;			org-ref-pdf-directory "G:\My Drive\New_System\lit_repo\notes.org")
+; for automatically generating bibtex keys
+(require 'bibtex)
 
-;; see org-ref for use of these variables
-(setq org-ref-bibliography-notes "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/notes.org"
-      org-ref-default-bibliography '("/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/all_entries.bib")
-      org-ref-pdf-directory "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo")
+(setq bibtex-autokey-year-length 4
+	bibtex-autokey-name-year-separator "-"
+	bibtex-autokey-year-title-separator "-"
+	bibtex-autokey-titleword-separator "-"
+	bibtex-autokey-titlewords 2
+	bibtex-autokey-titlewords-stretch 1
+	bibtex-autokey-titleword-length 5
+	org-ref-bibtex-hydra-key-binding (kbd "H-b"))
 
-;following is for helm-bibtex
-;	(setq bibtex-completion-bibliography (concat gs-google-dir "/lit_repo/all_entries.bib")
-;	      bibtex-completion-library-path (concat gs-google-dir "/lit_repo")
-;	      bibtex-completion-notes-path (concat gs-google-dir "/lit_repo/notes.org"))
-;
-;	;; open pdf with system pdf viewer (works on mac)
-;	(setq bibtex-completion-pdf-open-function
-;		(lambda (fpath)
-;			(start-process "open" "*open*" "open" fpath)))
-;
-;	;; alternative
-;	;; (setq bibtex-completion-pdf-open-function 'org-open-file)
+(define-key bibtex-mode-map (kbd "H-b") 'org-ref-bibtex-hydra/body)
 
 
 (require 'org-ref)
+(require 'org-ref-helm)
+(require 'org-ref-scopus)
+(require 'org-ref-wos)
+(require 'org-ref-isbn)
+(require 'doi-utils)
+
+(setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
+      org-ref-insert-cite-function 'org-ref-cite-insert-helm
+      org-ref-insert-label-function 'org-ref-insert-label-link
+      org-ref-insert-ref-function 'org-ref-insert-ref-link
+      org-ref-cite-onclick-function (lambda (_) (org-ref-citation-hydra/body)))
+
+(define-key bibtex-mode-map (kbd "H-b") 'org-ref-bibtex-hydra/body)
+(define-key org-mode-map (kbd "C-c ]") 'org-ref-insert-link)
+(define-key org-mode-map (kbd "s-[") 'org-ref-insert-link-hydra/body)
 #+end_src
-
-** Reference management for PDFs using BibTex
-- Source: https://ogbe.net/emacs/references.html
-The "database" consists of a loose collection of bib files in user-defined directories, a directory containing all pdfs, and a directory containing a notes file <bibtex-key>.org for every entry from all files. This must be set for any of this to work.
-#+begin_src elisp
-	; Basic data about directories of PDF, BIB, etc.
-		(defvar do.refs/db-dirs (concat gs-google-dir "/lit_repo")
-			"A list of paths to directories containing all my bibtex databases")
-
-		(defvar do.refs/pdf-dir (concat gs-google-dir "/lit_repo")
-			"The path to the directory containing the PDF files. The file
-																		for the entry with key <key> is stored as <key>.pdf.")
-
-		(defvar do.refs/notes-dir (concat gs-google-dir "/lit_repo/notes")
-			"The path to the directory containing my notes for the
-																		references. The note for the item with key <key> is stored in
-																		this folder as <key>.org")
-
-		(defvar do.refs/pdf-download-dir (concat gs-google-dir "/lit_repo/downloads")
-			"The path to the temporary directory to which we download PDF
-																		files.")
-
-		(defun do.refs/get-db-file-list ()
-			"Get the list of all the bib files containing my bib database."
-			(mapcan (lambda (dir) (directory-files dir t "\\.bib\\'"))
-							do.refs/db-dirs))
-
-#+end_src
-*** =ebib= configuration
-We use ebib to import items and to edit databases. Start with M-x ebib. Then open a database with o. We can open multiple databases at the same time and switch using the arrow keys. Edit a key with E. Auto-generate a key with !. Edit an entry with e. Edit in item in an entry with e. Import a file by selecting an entry in the top window and M-x ebib-import-file. This moves the selected PDF to the PDF directory under the right name. Add notes to an entry with N. Open the attached file with f.
-
-To import an item to the database there are two ways: First, we can just add the entry to the end of the file in a regular Emacs buffer. Second, with ebib opened in a frame, we can paste a BibTeX entry into an Emacs buffer (works nicely with the "Open with emacsclient" .desktop file) and call M-x ebib-import.
-
-The configuration below sets some sane standards, points ebib to our database, and changes the notes format to work well with the "one-file-per-entry" approach.
-#+begin_src elisp
-		(use-package ebib
-			:ensure t
-			:init
-			(add-hook 'ebib-entry-mode-hook #'no-trailing-whitespace)
-			:config
-			;; point it to our database
-			(setq ebib-file-search-dirs '(,do.refs/pdf-dir))
-			(setq ebib-notes-directory do.refs/notes-dir)
-			(setq ebib-preload-bib-files '(do.refs/get-db-file-list))
-
-			;; `ebib' uses `bibtex.el' to auto-generate keys for us
-			(setq bibtex-autokey-year-length 4)
-			(setq bibtex-autokey-titleword-separator "-")
-			(setq bibtex-autokey-name-year-separator "-")
-			(setq bibtex-autokey-year-title-separator "-")
-			(setq bibtex-autokey-titleword-length 8)
-			(setq bibtex-autokey-titlewords 3)
-			(setq bibtex-autokey-titleword-ignore ;; I took "On" out of this
-						'("A" "An" "The" "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*"))
-
-			;; make ebib window easier to deal with
-			(setq ebib-index-window-size 25)
-
-			;; use a common/similar notes template between `ebib' and `ivy-bibtex'.
-			(setq ebib-notes-template "#+TITLE: Notes on: %T\n\n>|<")
-			(remove-hook 'ebib-notes-new-note-hook #'org-narrow-to-subtree)
-
-			;; open pdfs with our favorite pdf reader
-			(setq ebib-file-associations '(("pdf" . ,do.minimal/pdf-reader)))
-
-			;; a small convenience function to import into ebib from the clipboard
-			(defun do.refs/ebib-import-from-clipboard ()
-				"Attempt to import the contents in the kill ring/clipboard into `ebib'."
-				(interactive)
-				(with-temp-buffer
-					(yank)
-					(ebib-import)
-					(call-interactively #'ebib)))
-
-			;; another convenience function to add the most recently downloaded PDF file
-			;; from the ~/Downloads folder to the current entry
-			(defun do.refs/ebib-add-newest-pdf-from-downloads ()
-				"Add the most recently-downloaded PDF in the ~/Downloads directory to the current entry in ebib."
-				(interactive)
-				;; pull out the most recent file from ~/Downloads with the .pdf extension.
-				(let ((newest-pdf (caar (sort (mapcan (lambda (x) (when (string-equal (file-name-extension (nth 0 x)) "pdf") (cons x nil)))
-																							(directory-files-and-attributes do.refs/pdf-download-dir))
-																			(lambda (x y) (not (time-less-p (nth 6 x) (nth 6 y))))))))
-					(if newest-pdf
-							;; https://nullprogram.com/blog/2017/10/27/
-							;; need to override `read-file-name' because ebib normally prompts us for the file to import
-							(let ((fpath (concat (file-name-as-directory do.refs/pdf-download-dir) newest-pdf))
-										(bibkey (ebib--get-key-at-point)))
-								(cl-letf (((symbol-function 'read-file-name) (lambda (&rest _) fpath)))
-									(call-interactively #'ebib-import-file))
-								(message "[Ebib] [Dennis] Imported %s for %s" fpath bibkey))
-						(message "[Ebib] [Dennis] No PDF files found in %s." do.refs/pdf-download-dir))))
-
-			;; on import, create two copies of the file. one for reading, one
-			;; for annotating. can also use this command to add an annotated
-			;; file to an existing entry
-			(defun do.refs/ebib-add-annotated (arg)
-				"Advice for `ebib-import-file' that automatically creates a
-															copy of the imported file that will be used for annotation."
-				(interactive "P")
-				(let ((filename (ebib-get-field-value ebib-file-field
-																							(ebib--get-key-at-point)
-																							ebib--cur-db 'noerror 'unbraced)))
-					(when filename
-						(let* ((pdf-path (file-name-as-directory (car ebib-file-search-dirs)))
-									 (orig-path (concat pdf-path filename))
-									 (annot-path (concat pdf-path
-																			 (file-name-sans-extension filename)
-																			 "-annotated"
-																			 (file-name-extension filename t))))
-							(unless (file-writable-p annot-path)
-								(error "[Ebib] [Dennis] Cannot write file %s" annot-path))
-							(copy-file orig-path annot-path)))))
-
-			;; add the above after the original call is done.
-			(advice-add #'ebib-import-file :after #'do.refs/ebib-add-annotated))
-#+end_src
-*** =ivy-bibtex= configuration
-This package is really just an alternative completion interface for bibtex-completion. It looks like this was initially all written for helm and at some point divided into the bibtex-completion frontend and helm and an ivy backend.
-
-I really like the ivy interface for searching. So we will configure it to be able to search our global database from anywhere in Emacs. We will later use this interface to insert citation keys into LaTeX documents.
-#+begin_src elisp
-		; ivy-bibtex configuration
-		(use-package ivy-bibtex
-			:ensure t
-			:init
-			;; point ivy to the reference database
-			(defun do.refs/update-db-file-list ()
-				"Update the list of bib files used for `ivy-bibtex'"
-				(interactive)
-				(setq ebib-preload-bib-files '(do.refs/get-db-file-list))
-				(setq bibtex-completion-bibliography '(do.refs/get-db-file-list)))
-			(do.refs/update-db-file-list)
-			(setq bibtex-completion-library-path '(,do.refs/pdf-dir))
-			(setq bibtex-completion-notes-path do.refs/notes-dir) ; notes are by default <key>.org
-
-			;; need this extra config (see github page)
-			(push '(ivy-bibtex . ivy--regex-ignore-order)
-						ivy-re-builders-alist)
-
-			;; make sure we can open additional files through =M-x bib=
-			(setq bibtex-completion-pdf-field nil)
-
-			;; could save an annotated version of a PDF with <key>-annotated.pdf
-			(setq bibtex-completion-find-additional-pdfs t)
-
-			;; what is the default citation style?
-			(setq bibtex-completion-cite-default-command "cite")
-			(setq bibtex-completion-cite-default-as-initial-input t)
-
-			;; hack the APA print function
-			;;<<do.refs/reference-format>>
-
-			;; open PDFs with our favourite PDF reader
-			(setq bibtex-completion-pdf-open-function
-						(lambda (fpath)
-							(call-process do.minimal/pdf-reader nil 0 nil fpath))))
-#+end_src
-One function of ivy-bibtex is to insert the full reference at point. This is a great feature, I just want to hack the output a little bit.
-#+begin_src elisp
-		(defun do.refs/custom-insert-reference (keys)
-			"This is a hacked version of `bibtex-completion-insert-reference'.
-
-										I just remove some punctuation and whitespace compared to the
-										original. It's still not perfect, but works well enough for
-										something I won't need much"
-			(let* ((refs (--map (s-word-wrap fill-column (bibtex-completion-apa-format-reference it))
-													keys)))
-				(insert (s-join "\n" refs) "\n")))
-
-		(advice-add #'bibtex-completion-insert-reference :override #'do.refs/custom-insert-reference)
-#+end_src
-*** =org-ref= configuration
-This package is responsible for managing references in org-mode documents. While I don't plan on writing many papers in org-mode (can't expect random collaborators to be into Emacs like this…), this is still very useful for personal stuff (my PhD thesis was written in org-mode) and my notes. This also lets me link to references from within notes of other references.
-#+begin_src elisp
-		(use-package org-ref
-			:ensure t
-			:demand ; we demand this because it also displays citations in latex documents
-			:init
-			(setq org-ref-completion-library 'org-ref-ivy-cite)
-			:config
-			(setq org-ref-default-bibliography '(do.refs/get-db-file-list))
-			(setq org-ref-pdf-directory do.refs/pdf-dir)
-			;; edit notes using the bibtex-completion package, i.e. `ivy-bibtex'
-			(setq org-ref-bibliography-notes nil)
-			(setq org-ref-notes-function
-						(lambda (thekey)
-							(let ((bibtex-completion-bibliography (org-ref-find-bibliography)))
-								(bibtex-completion-edit-notes
-								 (list (car (org-ref-get-bibtex-key-and-file thekey)))))))
-			(defun do.refs/org-ref-insert (&optional arg)
-				"Fix org-ref's cite command"
-				;; make sure bibtex-completion is initialized
-				(bibtex-completion-init)
-				;; fix org-ref (see https://github.com/jkitchin/org-ref/issues/717#issuecomment-633788035)
-				(ivy-set-display-transformer 'org-ref-ivy-insert-cite-link 'ivy-bibtex-display-transformer)
-				;; fix the height of the cite window
-				(let ((ivy-fixed-height-minibuffer t))
-					(push '(org-ref-ivy-insert-cite-link . do.minimal.rg/get-window-height) ivy-height-alist)
-					(org-ref-insert-link arg)
-					(pop ivy-height-alist))))
-#+end_src
-*** =reftex= configuration
-#+begin_src elisp
-		(use-package reftex
-			:init
-			(setq reftex-default-bibliography '(do.refs/get-db-file-list)))
-#+end_src
-*** Plumbing interface
-With our three heavy-lifting packages configured, let's write some glue code to make it all play well together and to let me use them the way I want to. The built-in reftex package will play a big part in this. But first we want to discourage it from looking for local databases.
-
-Next, a few definitions for bibliography generation. We set a straw man default name and give ourselves the ability to post-process the buffer containing the BibTeX entries.
-
-#+begin_src elisp
-
-		(defvar do.refs/default-bib-name "refs.bib"
-			"The default name for bibliographies generated from TeX or org files.")
-
-		(defvar do.refs/bib-file-post-process-function nil
-			"A function to post-process the auto-generated .bib
-						files. Called with a temporary buffer as single argument.")
-
-		(defun do.refs/mangle-bib-files (buffer)
-			"Insert a header and pull some fields out of the bib file."
-			(goto-char (point-min))
-			(insert "% ------------------------------------------------------------------\n"
-							(format-time-string
-							 "% -- This file was auto-generated on %Y-%m-%d at %T\n")
-							"% -- Change at own risk.\n"
-							"% ------------------------------------------------------------------\n\n")
-			;; let's just say that the month field in BibTeX is a little strange... This
-			;; is an attempt at removing the {braces} when we find one of the
-			;; three-letter month codes jan, feb, etc. in braces.
-			(mapcar (lambda (month)
-								(goto-char (point-min))
-								(while (re-search-forward (format "\\(^\s+month\s+=\s+\\){%s}" month) nil t)
-									(replace-match (format "\\1%s" month))))
-							'("jan" "feb" "mar" "apr" "may" "jun" "jul" "aug" "sep" "oct" "nov" "dec")))
-
-		(setq do.refs/bib-file-post-process-function #'do.refs/mangle-bib-files)
-#+end_src
-Now for the main course, do.refs/generate-bib-file can be called on a LaTeX or org-mode buffer and will spit out a fresh .bib file containing only the elements cited in the current document.
-
-#+begin_src elisp
-
-		(defun do.refs/generate-bib-file (&optional outfile)
-			"Generate a .bib file for the tex or org document in the current buffer.
-
-					This is done by first extracting all citation keys from the
-					document and then pulling them from the global database."
-			(interactive
-			 ;; if called with a prefix arg, put the generated bib into the kill ring
-			 ;; instead of writing it to a file.
-			 (if current-prefix-arg
-					 (list 'copy)
-				 ;; prompt user, get outfile, make sure this all works out.
-				 (if (not (or (derived-mode-p 'tex-mode) (derived-mode-p 'org-mode)))
-						 (prog1 nil (message "Not visiting a TeX or org buffer."))
-					 (let ((target-file (read-file-name "Path to .bib file: " nil nil nil do.refs/default-bib-name)))
-						 (cond ((file-directory-p target-file) (error "Output cannot be a directory."))
-									 ((file-exists-p target-file)
-										(if (yes-or-no-p (format "File %s exists. Overwrite? " target-file))
-												(list target-file)
-											(message "Not overwriting %s." target-file) nil))
-									 (t (list target-file)))))))
-			(when outfile
-				;; write the output file
-				(let ((mode (cond ((derived-mode-p 'org-mode) 'org)
-													((derived-mode-p 'tex-mode) 'tex))))
-					(let ((tex-buffer (cond ((equal mode 'tex) (current-buffer))
-																	((equal mode 'org)
-																	 ;; need to export the org doc to latex before we can scan
-																	 (let ((org-export-show-temporary-export-buffer nil)
-																				 (fn (file-name-sans-extension
-																							(buffer-file-name (current-buffer)))))
-																		 (org-latex-export-to-latex)
-																		 (find-file fn)))))
-								(msg (format "Saving .bib file for %s to %s..."
-														 (cond ((equal mode 'tex) (reftex-TeX-master-file))
-																	 ((equal mode 'org) (buffer-file-name (current-buffer))))
-														 outfile)))
-						;; extract all keys from file using reftex and insert into bib file using bibtex-completion
-						(with-current-buffer tex-buffer
-							(let ((keys (reftex-all-used-citation-keys))
-										;; skip over some fields for bib file generation
-										(bibtex-completion-no-export-fields (append '("author+an" "keywords" "abstract" "file")
-																																bibtex-completion-no-export-fields)))
-								(with-temp-buffer
-									(mapcar (lambda (key) (insert (concat (bibtex-completion-make-bibtex key) "\n"))) keys)
-									(when (symbol-function do.refs/bib-file-post-process-function) ; post-process
-										(funcall do.refs/bib-file-post-process-function (current-buffer)))
-									;; either write to file or move to kill ring
-									(if (equal outfile 'copy)
-											(progn (kill-region (point-min) (point-max))
-														 (message "Copied references database to kill ring."))
-										(write-file outfile)))))
-						(when (equal mode 'org) ; close the exported document
-							(kill-buffer tex-buffer))))))
-
-#+end_src
-Now let's customize the way we call ivy-bibtex to query our shiny new reference database. This will define the behavior of our M-x cite and M-x bib commands.
-
-#+begin_src elisp
-		(defun do.refs/get-ivy-cite-key ()
-			"Attempt to return a citation key as a string using `ivy-bibtex'."
-			(with-temp-buffer
-				(let ((bibtex-completion-cite-prompt-for-optional-arguments nil)
-							(ivy-bibtex-default-action 'ivy-bibtex-insert-citation))
-					(ivy-bibtex))
-				(when (> (buffer-size) 0)
-					(buffer-string))))
-
-		(defun do.refs/ivy-bibtex-insert-cite-key (&optional arg)
-			"Attempt to insert a citation key into the current LaTeX buffer."
-			(let ((bibtex-completion-cite-prompt-for-optional-arguments nil)
-						(ivy-bibtex-default-action 'ivy-bibtex-insert-citation))
-				(ivy-bibtex arg)))
-
-		(defun do.refs/ivy-bibtex-insert-reference (&optional arg)
-			"Attempt to insert a full reference into the current buffer."
-			(let ((ivy-bibtex-default-action 'ivy-bibtex-insert-reference))
-				(ivy-bibtex arg)))
-
-		(defun do.refs/insert-key-or-reference (arg)
-			"A DWIM 'cite' command."
-			(interactive "P")
-			(cond ((derived-mode-p 'org-mode) (do.refs/org-ref-insert arg))
-						((derived-mode-p 'tex-mode) (do.refs/ivy-bibtex-insert-cite-key arg))
-						(t (do.refs/ivy-bibtex-insert-reference arg))))
-
-		(defun do.refs/call-ivy-bibtex (arg)
-			"Use this to call `ivy-bibtex' with some interface customizations."
-			(interactive "P")
-			(let ((ivy-fixed-height-minibuffer t))
-				(push '(ivy-bibtex . do.minimal.rg/get-window-height) ivy-height-alist)
-				(ivy-bibtex arg)
-				(pop ivy-height-alist)))
-#+end_src
-My most-used snippet is the cite snippet in 𝐿𝐴𝑇𝐸𝑋 documents. Since I have the muscle memory, I want to have a snippet that behaves similarly, but calls ivy-bibtex instead of reftex. This is one way to do it.
-
-#+begin_src elisp
-; # -*- mode: snippet -*-
-; # contributor : Dennis Ogbe <do@ogbe.net>
-; # key: cite
-; # group: references
-; # name : \cite
-; # --
-
-; \cite{${1:key$(unless yas/modified-p (let ((key (do.refs/get-ivy-cite-key))) (if key key "no key received...")))}$0}
-#+end_src
-
-Finally, in addition to the LaTeX snippet, we want to access everything through our convenient aliases bib, cite, and gen-bib.
-#+begin_src elisp
-
-		(defalias 'cite    #'do.refs/insert-key-or-reference)
-		(defalias 'bib     #'do.refs/call-ivy-bibtex)
-		(defalias 'gen-bib #'do.refs/generate-bib-file)
-
-#+end_src
-
 
 
 ** CSV mode
@@ -1411,6 +1143,23 @@ https://github.com/alpha22jp/atomic-chrome
 ;(use-package evil-magit
 ;  :after magit
 ;)
+#+end_src
+
+
+** Maxima for symbolic math
+#+begin_src elisp
+(setq imaxima-maxima-program "maxima")
+;; for imaxima
+(push "/usr/local/share/emacs/site-lisp/maxima" load-path)
+
+
+(autoload 'imaxima "imaxima" "Maxima frontend" t)
+(autoload 'imath-mode "imath" "Interactive Math mode" t)
+
+; add to babel for org-mode source block
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((maxima . t)))
 #+end_src
 
 * Start server

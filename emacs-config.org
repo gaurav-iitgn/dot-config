@@ -180,10 +180,9 @@ Disabling for speed.
 #+end_src
 
 ** Enable leuven theme and configure doom modeline
-Not using leuven now. Doom modeline colors are not good for this.
-Will customize this sometime. But using the default theme until then.
+Change mode-line color to something that looks better with the doom-mode-line.
 #+begin_src emacs-lisp 
-;(load-theme 'leuven t)
+(load-theme 'leuven t)
 (use-package all-the-icons)
 (use-package doom-modeline
   :ensure t
@@ -191,6 +190,8 @@ Will customize this sometime. But using the default theme until then.
   (doom-modeline-mode 1)
   (setq doom-modeline-height 8)
 )
+(set-face-background 'mode-line "black")
+(set-face-background 'mode-line-inactive "dark gray")
 
 #+end_src
 

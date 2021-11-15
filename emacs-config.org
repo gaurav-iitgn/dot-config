@@ -774,17 +774,17 @@ Of course, this will not work for windows.
 (use-package helm
   :ensure t
   :bind (("M-x"     . helm-M-x)
-  ;;       ("C-x C-m" . helm-M-x)
          ("M-y"     . helm-show-kill-ring)
          ("C-x b"   . helm-mini)
          ("C-x C-b" . helm-buffers-list)
          ("C-x C-f" . helm-find-files)
-  ;;       ("C-h r"   . helm-info-emacs)
-  ;;       ("C-h C-l" . helm-locate_library)
+				 ("C-c h g" . helm-google-suggest)
+         ("C-h r"   . helm-info-emacs)
+         ("C-h l" . helm-locate_library)
   ;;       ("C-x r b" . helm-filtered-bookmarks)  ; Use helm bookmarks
          ("C-c f"   . helm-recentf)
          ("C-c j"   . helm-imenu)
-  ;;       ("C-c C-r" . helm-resume)
+         ("C-c C-r" . helm-resume)
   ;;       :map helm-map
   ;;       ("<tab>" . helm-execute-persistent-action)  ; Rebind tab to run persistent action
   ;;       ("C-i"   . helm-execute-persistent-action)  ; Make TAB work in terminals
@@ -808,8 +808,8 @@ Of course, this will not work for windows.
   (setq helm-follow-mode-persistent t)
 
   ;; Smaller helm window
-  (setq helm-autoresize-max-height 0)
-  (setq helm-autoresize-min-height 30)
+  (setq helm-autoresize-max-height 30)
+  (setq helm-autoresize-min-height 0)
   (helm-autoresize-mode 1)
 
   ;; Don't show details in helm-mini for tramp buffers
@@ -825,8 +825,12 @@ Of course, this will not work for windows.
 
   ;;(substitute-key-definition 'find-tag 'helm-etags-select global-map)
 )
-(define-key evil-ex-map "b" 'helm-buffers-list)
 (helm-mode 1)
+
+;display helm in its own frame
+(setq helm-display-function 'helm-display-buffer-in-own-frame
+      helm-display-buffer-reuse-frame t
+      helm-use-undecorated-frame-option t)
 #+end_src
 
 

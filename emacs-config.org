@@ -831,21 +831,26 @@ Of course, this will not work for windows.
 
 
 ** Matlab 
+Set this only when ~matlab-mode~ has been installed.
 https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 #+begin_src emacs-lisp
-(add-to-list 'load-path "~/code/matlab/matlab-emacs-src")
-(require 'matlab-load)
-(setq matlab-shell-command "~/code/matlab_emacs_wrapper")
-(setq matlab-shell-command-switches (list "-nodesktop"))
-;; setup matlab in babel
-(setq org-babel-default-header-args:matlab
-  '((:results . "output") (:session . "*MATLAB*")))
+(if (file-directory-p "~/code/matlab/matlab-emacs-src")
+  (progn
+		(add-to-list 'load-path "~/code/matlab/matlab-emacs-src")
+		(require 'matlab-load)
+		(setq matlab-shell-command "~/code/matlab_emacs_wrapper")
+		(setq matlab-shell-command-switches (list "-nodesktop"))
+		;; setup matlab in babel
+		(setq org-babel-default-header-args:matlab
+		'((:results . "output") (:session . "*MATLAB*")))
 
-;; list of babel languages
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((matlab . t)
-   ))
+		;; list of babel languages
+		(org-babel-do-load-languages
+		'org-babel-load-languages
+		'((matlab . t)
+		))
+	);progn
+);if
 #+end_src
 
 

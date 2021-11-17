@@ -827,10 +827,12 @@ Of course, this will not work for windows.
 )
 (helm-mode 1)
 
+;this needs some fixing. does not work on MacOS
+;Error: get-device-terminal "ns" does not exist 
 ;display helm in its own frame
-(setq helm-display-function 'helm-display-buffer-in-own-frame
-      helm-display-buffer-reuse-frame t
-      helm-use-undecorated-frame-option t)
+;(setq helm-display-function 'helm-display-buffer-in-own-frame
+      ;helm-display-buffer-reuse-frame t
+      ;helm-use-undecorated-frame-option t)
 #+end_src
 
 
@@ -975,7 +977,30 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 #+end_src
 
 ** AUCTEX / LATEX - needs revamping
-- following if for latex: auctex
+This adds a babel language 'latex-macros' which streamlines including latex header macros like \\newcommand{} which is seamlessly exported to HTML (in addition to LaTeX)
+#+BEGIN_SRC elisp :cache yes
+(add-to-list 'org-src-lang-modes '("latex-macros" . latex))
+
+(defvar org-babel-default-header-args:latex-macros
+  '((:results . "raw")
+    (:exports . "results")))
+
+(defun prefix-all-lines (pre body)
+  (with-temp-buffer
+    (insert body)
+    (string-insert-rectangle (point-min) (point-max) pre)
+    (buffer-string)))
+
+(defun org-babel-execute:latex-macros (body _params)
+  (concat
+   (prefix-all-lines "#+LATEX_HEADER: " body)
+   "\n#+HTML_HEAD_EXTRA: <div style=\"display: none\"> \\(\n"
+   (prefix-all-lines "#+HTML_HEAD_EXTRA: " body)
+   "\n#+HTML_HEAD_EXTRA: \\)</div>\n"))
+#+END_SRC
+
+
+- following is for latex: auctex
 - taken from: https://tex.stackexchange.com/questions/461851/sumatra-pdf-forward-and-inverse-search-emacs
 
 #+begin_src emacs-lisp

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Latex Aligned Equations
+# key: eqns
+# --
+#+NAME: $0
+\begin{align}
+\end{align}

@@ -12,7 +12,7 @@
 #+end_src
 
 * Configure =use-package=
-This package is used to configure other packages. Installation of this package itself is handled in ~/.emacs itself.
+This package is used to configure other packages.
 Rest of the packages are managed by =use-package=. The following ensures =use-package= is able to handle things as expected
 
 #+begin_src emacs-lisp
@@ -30,27 +30,27 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 * Define some constants to make life easy later
 
 #+begin_src emacs-lisp
-(defconst *sys/gui*
+(defconst *sys-gui*
   (display-graphic-p)
   "Are we running on a GUI Emacs?")
 
-(defconst *sys/win32*
+(defconst *sys-win32*
   (eq system-type 'windows-nt)
   "Are we running on a Windows system?")
 
-(defconst *sys/linux*
+(defconst *sys-linux*
   (eq system-type 'gnu/linux)
   "Are we running on a GNU/Linux system?")
 
-(defconst *sys/mac*
+(defconst *sys-mac*
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
 
-(defconst *sys/cygwin*
+(defconst *sys-cygwin*
   (eq system-type 'cygwin)
   "Are we running on a Cygwin system?")
 
-(defconst *sys/root*
+(defconst *sys-root*
   (string-equal "root" (getenv "USER"))
   "Are you a ROOT user?")
 
@@ -133,7 +133,7 @@ https://stackoverflow.com/questions/2680389/how-to-remove-all-files-ending-with-
 https://apple.stackexchange.com/questions/12087/emacs-on-mac-os-x-to-alt-or-command/53551
 #+begin_src emacs-lisp
 (cond
- (*sys/mac* ; Mac OS X
+ (*sys-mac* ; Mac OS X
 	(progn
 		(setq mac-option-key-is-meta nil)
 		(setq mac-command-key-is-meta t)
@@ -155,7 +155,7 @@ Disabling for now to see if it enhances working speed.
 #+end_src
 
 ** Increase default font size to 11 pt.
-- values given are in 1/10 pt; so, for 14pt ==> 140
+- values given are in 1/10 pt; so, a value of 140 implies 14pt font
 - this is now set in the .emacs file directly as different machines have different optimal font sizes
 
 #+begin_src emacs-lisp
@@ -182,16 +182,26 @@ Disabling for speed.
 ** Enable leuven theme and configure doom modeline
 Change mode-line color to something that looks better with the doom-mode-line.
 #+begin_src emacs-lisp 
-(load-theme 'leuven t)
-(use-package all-the-icons)
-(use-package doom-modeline
-  :ensure t
-  :init
-  (doom-modeline-mode 1)
-  (setq doom-modeline-height 8)
-)
-(set-face-background 'mode-line "black")
-(set-face-background 'mode-line-inactive "dark gray")
+(if (>= emacs-major-version 24)
+  (progn 
+	(use-package doom-themes
+          :init (load-theme 'doom-acario-light t)
+        );use-package doom-themes
+	(use-package all-the-icons)
+	(use-package doom-modeline
+	  :ensure t
+	  :init
+	  (doom-modeline-mode 1)
+	  (setq doom-modeline-height 8)
+	)
+   );progn
+   (
+        ;use default theme for v<24
+	(set-face-background 'mode-line "black")
+	(set-face-background 'mode-line-inactive "dark gray")
+   );else
+);if
+    
 
 #+end_src
 
@@ -296,7 +306,7 @@ Didn't find anything better then leuven to my liking.
 Download hunspell from here: http://wordlist.aspell.net/dicts/
 #+begin_src emacs-lisp
 	;; spell checker program
-	(if *sys/win32*
+	(if *sys-win32*
 		(setq ispell-program-name "~/MEGA/hunspell-win32/bin/hunspell")
 		(setq ispell-program-name "hunspell"))
 
@@ -315,7 +325,7 @@ Download hunspell from here: http://wordlist.aspell.net/dicts/
 
 #+begin_src emacs-lisp
 	(use-package dired-open)
-	 (if *sys/cygwin*
+	 (if *sys-cygwin*
 		 (progn (setq dired-open-extensions
 					 '(
 							("doc"  . "cygstart")
@@ -393,7 +403,7 @@ Source: http://www.whattheemacsd.com/.
 ** To inherit executable paths from Shell
 Of course, this will not work for windows.
 #+begin_src emacs-lisp
-(if (not *sys/win32*)
+(if (not *sys-win32*)
 (progn
 	(use-package exec-path-from-shell)
 	(exec-path-from-shell-initialize)
@@ -453,7 +463,7 @@ Of course, this will not work for windows.
 *** set org directory, agenda files etc
 
 #+begin_src emacs-lisp
-(defvar gs/org-root-dir (concat gs-mega-dir "/Notes"))
+(defvar gs/org-root-dir (concat *gs-mega-d* "/Notes"))
 (setq org-directory gs/org-root-dir)
 (setq org-agenda-files (list gs/org-root-dir))
 
@@ -469,7 +479,7 @@ Of course, this will not work for windows.
 *** setup of inbox and other files, capture templates, etc.
 
 #+begin_src emacs-lisp
-(defvar gs/org-inbox-file (concat gs-mega-dir "/Notes/000_Inbox.org"))
+(defvar gs/org-inbox-file (concat *gs-mega-d* "/Notes/000_Inbox.org"))
 
 ;; t is for quick TODO capture
 ;; 'e' is for email TODO capture and 'r' is for email archive capture (if an email is related to an ongoing issue)
@@ -628,9 +638,10 @@ Of course, this will not work for windows.
 #+end_src
 
 
+- Function that returns the resource directory linked with the current headline (through keyword DOCDIR within PROPERTIES)
 #+begin_src emacs-lisp
-(defun gs/open-resource-dir ()
-"Opens document resource directory of the current headline within the org file"
+(defun gs/get-resource-dir ()
+"Gets the name of the document resource directory of the current headline within the org file"
   (interactive)
 	
 	;; obtain the DOCDIR (google / mega / dropbox / nas) from the PROPERTIES
@@ -640,13 +651,13 @@ Of course, this will not work for windows.
   ;; this keyword is DOCDIR -- must be defined in the PROPERTIES of the headline
   ;;get the identifier for file location
   (setq mydocdirstr (car (org-property-values "DOCDIR")))
-  (setq mybasedir gs-google-dir)
+  (setq mybasedir *gs-google-d*)
   ;;set full base directory depending on the file location identifier
   (cond 
-    ((equal mydocdirstr "google")(setq mybasedir gs-google-dir))
-    ((equal mydocdirstr "dropbox")(setq mybasedir gs-dropbox-dir))
-    ((equal mydocdirstr "mega")(setq mybasedir gs-mega-dir))
-    ((equal mydocdirstr "nas")(setq mybasedir gs-nas-dir))
+    ((equal mydocdirstr "google")(setq mybasedir *gs-google-d*))
+    ((equal mydocdirstr "dropbox")(setq mybasedir *gs-dropbox-d*))
+    ((equal mydocdirstr "mega")(setq mybasedir *gs-mega-d*))
+    ((equal mydocdirstr "nas")(setq mybasedir *gs-nas-d*))
   )
 	;; obtain the FIRST tag of the headline
   ;; this should be in the format XXX_Y_Z where X, Y, Z are all numbers (e.g. 405_2_1)
@@ -671,16 +682,82 @@ Of course, this will not work for windows.
   ;; open this directory with system's file viewer
   ;; replaces spaces with escaped ones for use with system's file viewer
   ;;(if (s-match " " mydir) ;;it should be like this ideally
-  (if (and *sys/mac* (equal mydocdirstr "google")) ;this will have a space on Mac
+  (if (and *sys-mac* (equal mydocdirstr "google")) ;this will have a space on Mac
 		(setq mydirsys (s-replace " " "\\ " mydir))
 		(setq mydirsys mydir)
 	)
 
   ;;on Windows, replace / with \ in filepath before sending it to explorer
-  (if *sys/win32*
+  (if *sys-win32*
 		(setq mydirsys (s-replace "/" "\\" mydir))
 	)
-  (shell-command (concat gs-file-manager mydirsys))
+  ;(shell-command (concat *gs-file-manager* mydirsys))
+  (concat mydirsys)
+)
+#+end_src
+
+#+begin_src emacs-lisp
+(defun gs/get-resource-dir-try ()
+"Gets the name of the document resource directory of the current headline within the org file"
+  (interactive)
+	
+	;; obtain the DOCDIR (google / mega / dropbox / nas) from the PROPERTIES
+  ;; get the base directory from DOCDIR keyword of the file
+  ;; this specifies whether the related documents are on MEGA, Dropbox,
+  ;; Google Drive or NAS 
+  ;; this keyword is DOCDIR -- must be defined in the PROPERTIES of the headline
+  ;;get the identifier for file location
+  (let ((mydocdirstr (car (org-property-values "DOCDIR")))
+				(mybasedir *gs-google-d*)
+				(mytag (car (org-get-tags)))
+       )
+    ; first tag (in mytag) should be in the format XXX_Y_Z where XXX, Y, Z are all numbers which classifies the heading (e.g. 405_2_1)
+    ; corresponding directory name will be 405.2.1_name
+
+		;;set appropriate base directory based on DOCDIR
+		(cond 
+				((equal mydocdirstr "google")(setq mybasedir *gs-google-d*))
+				((equal mydocdirstr "dropbox")(setq mybasedir *gs-dropbox-d*))
+				((equal mydocdirstr "mega")(setq mybasedir *gs-mega-d*))
+				((equal mydocdirstr "nas")(setq mybasedir *gs-nas-d*))
+		)
+
+	;; replace _ with . to enable mapping with directory names
+  (setq mytag (s-replace "_" "." mytag))
+
+  ;; build directory name
+  (setq mydir (concat mybasedir "/" mytag "_*"))
+	
+  ;; expand the wildcard to get full name
+	;; file-expand-wildcards returns a list; pick the first element with car
+  (setq mydir (car (file-expand-wildcards mydir)))
+
+  ; this will return the final system-dependent path
+  (setq mydir (concat "'" (expand-file-name mydir) "'"))
+
+  );let
+);defun
+#+end_src
+- Function to open the resource directory linked with the current headline (through keyword DOCDIR within PROPERTIES)
+#+begin_src emacs-lisp
+(defun gs/open-resource-dir ()
+"Opens document resource directory of the current headline within the org file"
+  (interactive)
+  (shell-command (concat *gs-file-manager* (gs/get-resource-dir-try)))
+  ;(shell-command (concat *gs-file-manager* (gs/get-resource-dir)))
+
+  ;; open this directory in a new frame of emacs (within dired)
+  ;;(dired-other-frame mydir)
+
+)
+#+end_src
+
+- Function to open a FILE within the resource directory linked with the current headline (through keyword DOCDIR within PROPERTIES)
+#+begin_src emacs-lisp
+(defun gs/open-file-within-dir (FILE)
+"Opens a file within the document resource directory of the current headline within the org file"
+  (interactive)
+  (shell-command (concat *gs-file-manager* (expand-file-name FILE (gs/get-resource-dir))))
 )
 #+end_src
 
@@ -738,7 +815,7 @@ Of course, this will not work for windows.
 	;; https://github.com/yradunchev/ledger
 	(use-package ledger-mode)
 	(use-package flycheck-ledger  :after ledger-mode)
-	(setq ledger-binary-path gs-ledger-executable)
+	(setq ledger-binary-path *gs-ledger-x*)
 	(add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode))
 	(add-hook 'ledger-mode-hook
 						(lambda ()
@@ -750,7 +827,7 @@ Of course, this will not work for windows.
 						)
 
 	;; capture templates for org
-  (setq gs-ledger-file (concat gs-mega-dir "/ledger/data/journal.ledger"))
+  (setq gs-ledger-file (concat *gs-mega-d* "/ledger/data/journal.ledger"))
 	(setq org-capture-templates
 				(append '(("l" "Ledger entries")
 									("lc" "SBI Credit Card" plain
@@ -873,9 +950,9 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 ;;(use-package matlab-mode)
 	(autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
 	;;tried but doesn't work on windows
-	(if *sys/win32*
+	(if *sys-win32*
 		(setq matlab-shell-command "C:\\Program Files\\MATLAB\\R2017a\\bin\\MATLAB.exe"))
-	(if (or *sys/mac* *sys/linux*)
+	(if (or *sys-mac* *sys-linux*)
 		(setq matlab-shell-command "matlab"))
 
 
@@ -923,7 +1000,7 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 #+begin_src elisp
 (use-package go-mode)
 
-;(setenv "GOPATH" (concat gs-mega-dir "/bin/go"))
+;(setenv "GOPATH" (concat *gs-mega-d* "/bin/go"))
 (setenv "GOPATH" "/Users/gaurav/go")
 (require 'flycheck)
 (global-flycheck-mode 1)
@@ -967,7 +1044,7 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
   :bind ("C-c n" . deft)
   :commands (deft)
   :config
-  (setq deft-directory (concat gs-mega-dir "/Notes")
+  (setq deft-directory (concat *gs-mega-d* "/Notes")
         deft-extensions '("org" "md" "txt")
         deft-default-extension "org"
         deft-recursive t
@@ -1043,7 +1120,7 @@ https://github.com/jkitchin/org-ref/
 https://github.com/jkitchin/org-ref/blob/master/org-ref.org
 https://github.com/tmalsburg/helm-bibtex
 #+begin_src elisp :tangle no
-(defvar gs-lit-repo (concat gs-google-dir "/lit_repo"))
+(defvar gs-lit-repo (concat *gs-google-d* "/lit_repo"))
 (use-package pdf-tools
   :ensure t
   :config
@@ -1379,10 +1456,10 @@ Not using currently.
 (set-register ?b (cons 'file "~/.bashrc"))
 (set-register ?l (cons 'file "~/.ledgerrc"))
 (set-register ?E (cons 'file "~/code/dot-config/emacs-config.org"))
-(set-register ?I (cons 'file (concat gs-mega-dir "/Notes/000_Inbox.org")))
-(set-register ?J (cons 'file (concat gs-mega-dir "/ledger/data/journal.ledger")))
-(set-register ?C (cons 'file (concat gs-mega-dir "/bin/gen_cat.csv")))
-(set-register ?R (cons 'file (concat gs-google-dir "/lit_repo/all_entries.bib")))
+(set-register ?I (cons 'file (concat *gs-mega-d* "/Notes/000_Inbox.org")))
+(set-register ?J (cons 'file (concat *gs-mega-d* "/ledger/data/journal.ledger")))
+(set-register ?C (cons 'file (concat *gs-mega-d* "/bin/gen_cat.csv")))
+(set-register ?R (cons 'file (concat *gs-google-d* "/lit_repo/all_entries.bib")))
 #+end_src
 
  

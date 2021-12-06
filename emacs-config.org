@@ -182,7 +182,7 @@ Disabling for speed.
 ** Enable leuven theme and configure doom modeline
 Change mode-line color to something that looks better with the doom-mode-line.
 #+begin_src emacs-lisp 
-(if (>= emacs-major-version 24)
+(if (> emacs-major-version 24)
   (progn 
 	(use-package doom-themes
           :init (load-theme 'doom-acario-light t)

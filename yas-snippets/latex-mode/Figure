@@ -1,0 +1,13 @@
+# -*- mode: snippet -*-
+# name: Figure
+# key: fig
+# --
+%
+begin{figure}[h]
+\centering
+\includegraphics[width=${1:\textwidth}]{${2:filepath}}
+\caption{${3:Figure Caption}}
+\label{fig:${4:fig_label}}
+\end{figure}
+%
+$0

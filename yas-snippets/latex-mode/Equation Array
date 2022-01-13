@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: Equation Array
+# key: eqns
+# --
+%
+\begin{align}
+$0
+\label{eq:${1:my_equation}}
+\end{align}
+%

@@ -1,0 +1,28 @@
+# -*- mode: snippet -*-
+# name: Figures
+# key: figs
+# --
+%
+\begin{figure}[h]
+\centering
+		%
+		\begin{subfigure}[b]{0.5\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{$0}
+		\caption{CAPTION}
+		\label{fig:LABEL}
+		\end{subfigure}
+		%
+\hfill
+		%
+		\begin{subfigure}[b]{0.5\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{FILE}
+		\caption{CAPTION}
+		\label{fig:LABEL}
+		\end{subfigure}
+		%
+\caption{CAPTION}
+\label{fig:LABEL}
+\end{figure}
+%

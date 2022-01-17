@@ -791,8 +791,52 @@ Of course, this will not work for windows.
                  (org-agenda-prefix-format "  %i %-12:c [%e] ")
                  (org-agenda-overriding-header "\nTo be Discussed with someone\n")))
           (tags "CLOSED>=\"<today>\""
-                ((org-agenda-overriding-header "\nCompleted today\n"))))))
-);;setq
+                ((org-agenda-overriding-header "\nCompleted today\n")))));"g"
+				;;---- DO THINGS ----
+				("d" . "Do Things")
+				("dq" "Quick things first"
+          (
+            (todo "TODO"
+                 ((org-agenda-prefix-format "  %i %-12:c [%e] ")
+								  (org-agenda-sorting-strategy '(priority-up effort-up))
+                  (org-agenda-overriding-header "\nThings to do\n")))
+           )
+        );"dq"
+				("dr" "Review documents/emails"
+          (
+           (tags-todo "Review"
+                 ((org-agenda-prefix-format "  %i %-12:c [%e] ")
+                  (org-agenda-overriding-header "\nThings to read and review\n")))
+           )
+        );"dr"
+				;;---- FOLLOW-UP ON THINGS ----
+				("f" . "Follow-up on issues")
+				("fc" "Follow-up on CD issues"
+          (
+            (tags "405|406")
+            (todo "FOLLOWUP"
+                 ((org-agenda-prefix-format "  %i %-12:c [%e] ")
+                  (org-agenda-overriding-header "\nFollow-up on CD issues\n")))
+          )
+        );"fc"
+				;;---- PEOPLE BASED ----
+				("p" . "With a person")
+				("pd" "Meeting with Director"
+          (
+            (tags-todo "BriefDirector"
+                 ((org-agenda-prefix-format "  %i %-12:c [%e] ")
+                  (org-agenda-overriding-header "\nThings to be discussed with Director\n")))
+          )
+        );"pd"
+				("pv" "Meeting with Vikas Kumar"
+          (
+            (tags-todo "VikasKumar"
+                 ((org-agenda-prefix-format "  %i %-12:c [%e] ")
+                  (org-agenda-overriding-header "\nThings to be discussed with Vikas\n")))
+          )
+        );"pv"
+		);list
+);setq
 
 (setq org-agenda-todo-ignore-scheduled 'all)
 (setq org-agenda-todo-ignore-deadlines 'all)

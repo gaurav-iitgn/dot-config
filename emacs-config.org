@@ -1275,7 +1275,8 @@ https://github.com/alpha22jp/atomic-chrome
 #+end_src
 
 
-** Projectile for project management
+** Project management
+*** Projectile
 #+begin_src elisp
 (use-package projectile
   :diminish projectile-mode
@@ -1283,10 +1284,16 @@ https://github.com/alpha22jp/atomic-chrome
   :custom ((projectile-completion-system 'helm))
 	:bind-keymap ("C-c p" . projectile-command-map)
 	:init
-  (when (file-directory-p "~/code")
-    (setq projectile-project-search-path '("~/code")))
-		(setq projectile-switch-project-action #'projectile-dired)
+  (setq projectile-project-search-path '("~/code/" "~/MEGA/code/"))
+	(setq projectile-switch-project-action #'projectile-dired)
 )
+#+end_src
+
+*** Neotree
+To open directory tree on the left pane
+#+begin_src elisp
+(use-package neotree)
+(require 'neotree)
 #+end_src
 
 ** Magit
@@ -1489,6 +1496,14 @@ Not using currently.
 (global-set-key "\C-cl" 'org-store-link)
 (global-set-key "\C-cc" 'org-capture)
 (global-set-key "\C-cq" 'save-buffers-kill-emacs)
+
+; open new frame with Meta-n
+(global-set-key "\M-n" 'make-frame)
+
+; toggle neotree left pane with Meta-t
+; (this is originally bound to org-transport-words
+(global-set-key "\M-t" 'neotree-toggle)
+
 (setq org-log-done t)
 #+end_src
 

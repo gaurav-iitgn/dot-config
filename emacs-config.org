@@ -397,7 +397,7 @@ Source: http://www.whattheemacsd.com/.
 
 
 ** Which key
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package which-key
   :ensure t
   :defer 10
@@ -1053,7 +1053,7 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 #+end_src
 
 ** Setup language server for relevant ones
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package lsp-mode)
 (require 'lsp-mode)
 (add-hook 'go-mode-hook 'lsp-deferred)
@@ -1064,13 +1064,13 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 ; install server: pip3 install python-language-server[all]
 #+end_src
 ** Yaml
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package yaml)
 (use-package yaml-mode)
 #+end_src
 ** Go language setup
 http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package go-mode)
 
 ;(setenv "GOPATH" (concat *gs-mega-d* "/bin/go"))
@@ -1093,6 +1093,31 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
   )
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 
+#+end_src
+
+
+** C++ language setup
+- https://tuhdo.github.io/c-ide.html
+- sudo apt install global (to get GNU Global on Debian)
+#+begin_src emacs-lisp
+(use-package ggtags)
+(require 'ggtags)
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
+              (ggtags-mode 1))))
+
+(define-key ggtags-mode-map (kbd "C-c g s") 'ggtags-find-other-symbol)
+(define-key ggtags-mode-map (kbd "C-c g h") 'ggtags-view-tag-history)
+(define-key ggtags-mode-map (kbd "C-c g r") 'ggtags-find-reference)
+(define-key ggtags-mode-map (kbd "C-c g f") 'ggtags-find-file)
+(define-key ggtags-mode-map (kbd "C-c g c") 'ggtags-create-tags)
+(define-key ggtags-mode-map (kbd "C-c g u") 'ggtags-update-tags)
+
+(define-key ggtags-mode-map (kbd "M-,") 'pop-tag-mark)
+
+(setq-local imenu-create-index-function #'ggtags-build-imenu-index)
 #+end_src
 
 
@@ -1128,7 +1153,7 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 
 ** AUCTEX / LATEX - needs revamping
 This adds a babel language 'latex-macros' which streamlines including latex header macros like \\newcommand{} which is seamlessly exported to HTML (in addition to LaTeX)
-#+BEGIN_SRC elisp :cache yes
+#+BEGIN_SRC emacs-lisp :cache yes
 (add-to-list 'org-src-lang-modes '("latex-macros" . latex))
 
 (defvar org-babel-default-header-args:latex-macros
@@ -1179,7 +1204,7 @@ This adds a babel language 'latex-macros' which streamlines including latex head
 
 ** =paperless= for document filing (mainly papers)
 https://github.com/atgreen/paperless
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package ido-completing-read+)
 (use-package paperless)
 (custom-set-variables
@@ -1192,7 +1217,7 @@ https://github.com/atgreen/paperless
 https://github.com/jkitchin/org-ref/
 https://github.com/jkitchin/org-ref/blob/master/org-ref.org
 https://github.com/tmalsburg/helm-bibtex
-#+begin_src elisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (defvar gs-lit-repo (concat *gs-google-d* "/lit_repo"))
 (use-package pdf-tools
   :ensure t
@@ -1266,21 +1291,21 @@ https://github.com/tmalsburg/helm-bibtex
 
 
 ** CSV mode
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package csv-mode)
 #+end_src
 
 ** Atomic chrome for emacs
 Enables editing any textbox in browser within an emacs window
 https://github.com/alpha22jp/atomic-chrome
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package atomic-chrome)
 (require 'atomic-chrome)
 (atomic-chrome-start-server)
 #+end_src
 
 ** HTTPD service for localhost
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package simple-httpd
   :ensure t)
 (httpd-serve-directory "~/code/gaurav-iitgn.github.io/my-org-site/public")
@@ -1289,7 +1314,7 @@ https://github.com/alpha22jp/atomic-chrome
 
 
 ** Better window management with ace-window and winner-mode
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package ace-window)
 (global-set-key (kbd "M-o") 'ace-window)
 ; set switch window keys to home row
@@ -1306,7 +1331,7 @@ https://github.com/alpha22jp/atomic-chrome
 
 ** Project management
 *** Projectile
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode 1)
@@ -1320,13 +1345,13 @@ https://github.com/alpha22jp/atomic-chrome
 
 *** Neotree
 To open directory tree on the left pane
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package neotree)
 (require 'neotree)
 #+end_src
 
 ** Magit
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package magit
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
@@ -1339,7 +1364,7 @@ To open directory tree on the left pane
 
 
 ** Maxima for symbolic math
-#+begin_src elisp
+#+begin_src emacs-lisp
 (setq imaxima-maxima-program "maxima")
 ;; for imaxima
 (push "/usr/local/share/emacs/site-lisp/maxima" load-path)

@@ -1120,6 +1120,15 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 (setq-local imenu-create-index-function #'ggtags-build-imenu-index)
 #+end_src
 
+- autocompletion with clangd
+https://clangd.llvm.org/installation.html
+#+BEGIN_SRC emacs-lisp
+(use-package eglot)
+(require 'eglot)
+(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+(add-hook 'c-mode-hook 'eglot-ensure)
+(add-hook 'c++-mode-hook 'eglot-ensure)
+#+END_SRC
 
 ** Evil Collection (for key bindings in most places)
 - This one had some error when trying to install with command line

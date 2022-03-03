@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: Meeting
+# key: meeting
+# --
+** ${1:Title of the meeting}
+*People:* ${2:Some good people}
+*Discussions:*
+- $0
+- Agenda 1
+- Agenda 2
+*Decisions:*
+- Decision 1
+*** Action items [/]
+- [ ] Action 1 with assignee

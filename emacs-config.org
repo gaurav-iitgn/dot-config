@@ -1122,12 +1122,48 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 
 - autocompletion with clangd
 https://clangd.llvm.org/installation.html
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package eglot)
 (require 'eglot)
 (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
 (add-hook 'c-mode-hook 'eglot-ensure)
 (add-hook 'c++-mode-hook 'eglot-ensure)
+#+END_SRC
+
+- cpputils-cmake setup
+https://github.com/redguardtoo/cpputils-cmake
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package auto-complete-clang)
+(setq ac-clang-flags
+      (mapcar (lambda (item)(concat "-I" item))
+              (split-string
+               "
+/usr/include/c++/9
+/usr/include/x86_64-linux-gnu/c++/9
+/usr/include/c++/9/backward
+/usr/lib/gcc/x86_64-linux-gnu/9/include
+/usr/local/include
+/usr/include/x86_64-linux-gnu
+/usr/include
+"
+               )))
+        
+
+(use-package cpputils-cmake)
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (if (derived-mode-p 'c-mode 'c++-mode)
+                (cppcm-reload-all)
+              )))
+;; OPTIONAL, somebody reported that they can use this package with Fortran
+(add-hook 'c90-mode-hook (lambda () (cppcm-reload-all)))
+;; OPTIONAL, avoid typing full path when starting gdb
+(global-set-key (kbd "C-c C-g")
+ '(lambda ()(interactive) (gud-gdb (concat "gdb --fullname " (cppcm-get-exe-path-current-buffer)))))
+;; OPTIONAL, some users need specify extra flags forwarded to compiler
+;(setq cppcm-extra-preprocss-flags-from-user '("-I/usr/src/linux/include" "-DNDEBUG"))
+
 #+END_SRC
 
 ** Evil Collection (for key bindings in most places)

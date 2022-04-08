@@ -3,6 +3,7 @@
 # key: meeting
 # --
 ** ${1:Title of the meeting}
+`(concat "<" (format-time-string "%Y-%m-%d %a") ">")`
 *People:* ${2:Some good people}
 *Discussions:*
 - $0
@@ -10,5 +11,5 @@
 - Agenda 2
 *Decisions:*
 - Decision 1
-*** Action items [/]
+*** TODO Action items [/]
 - [ ] Action 1 with assignee

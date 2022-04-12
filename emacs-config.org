@@ -86,10 +86,9 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 
 ** A function to print usable debug messages during execution
 #+BEGIN_SRC emacs-lisp
-(defun gs/debug-print (MSG)
-"Prints a message with timestamp for easy debugging."
-  (message "%s: %s\n" (format-time-string "%H:%M:%S" (current-time)) MSG)
-)
+(defun gs/debug-print (token)
+   (message "%s: `%s` is `%s`\n" 
+	    (format-time-string "%H:%M:%S" (current-time)) token (eval token)))
 #+END_SRC
 
 * Information about myself
@@ -729,7 +728,7 @@ Of course, this will not work for windows.
 				((equal mydocdirstr "mega")(setq mybasedir *gs-mega-d*))
 				((equal mydocdirstr "nas")(setq mybasedir *gs-nas-d*))
 		)
-	  (gs/debug-print (concat ".mydocdirstr: " mydocdirstr))
+	  (gs/debug-print 'mydocdirstr)
 
 	;; replace _ with . to enable mapping with directory names
   (setq mytag (s-replace "_" "." mytag))
@@ -737,13 +736,13 @@ Of course, this will not work for windows.
   ;; build directory name
   (setq mydir (concat mybasedir "/" mytag "_*"))
 	
-	(gs/debug-print (concat ".mydir (after building it): " mydir))
+	(gs/debug-print 'mydir)
 	
   ;; expand the wildcard to get full name
 	;; file-expand-wildcards returns a list; pick the first element with car
   (setq mydir (car (file-expand-wildcards mydir)))
 	
-	(gs/debug-print (concat ".mydir (after wildcard expansion): " mydir))
+	(gs/debug-print 'mydir)
 
   ; this will return the final system-dependent path
   (setq mydir (expand-file-name mydir))
@@ -763,16 +762,16 @@ Of course, this will not work for windows.
 	(message mydir)
 
   );let
-);defun
+);defun gs/get-resource-dir-try
 #+end_src
 - Function to open the resource directory linked with the current headline (through keyword DOCDIR within PROPERTIES)
 #+begin_src emacs-lisp
 (defun gs/open-resource-dir ()
 "Opens document resource directory of the current headline within the org file"
   (interactive)
-  (setq ord-cmd (concat *gs-file-manager* (gs/get-resource-dir-try)))
-	(gs/debug-print (concat ".ord-cmd: " ord-cmd))
-  (shell-command ord-cmd)
+  (setq org-cmd (concat *gs-file-manager* (gs/get-resource-dir-try)))
+	(gs/debug-print 'org-cmd)
+  (shell-command org-cmd)
   ;(shell-command (concat *gs-file-manager* (gs/get-resource-dir)))
 
   ;; open this directory in a new frame of emacs (within dired)

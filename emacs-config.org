@@ -657,73 +657,20 @@ Of course, this will not work for windows.
   ;; Google Drive or NAS 
   ;; this keyword is DOCDIR -- must be defined in the PROPERTIES of the headline
   ;;get the identifier for file location
-  (setq mydocdirstr (car (org-property-values "DOCDIR")))
-  (setq mybasedir *gs-google-d*)
-  ;;set full base directory depending on the file location identifier
-  (cond 
-    ((equal mydocdirstr "google")(setq mybasedir *gs-google-d*))
-    ((equal mydocdirstr "dropbox")(setq mybasedir *gs-dropbox-d*))
-    ((equal mydocdirstr "mega")(setq mybasedir *gs-mega-d*))
-    ((equal mydocdirstr "nas")(setq mybasedir *gs-nas-d*))
-  )
-	;; obtain the FIRST tag of the headline
-  ;; this should be in the format XXX_Y_Z where X, Y, Z are all numbers (e.g. 405_2_1)
-	;; it is assumed that the classified will be the FIRST tag among others for the headine
-	(setq mytag (car (org-get-tags)))
-
-	;; replace _ with . to enable mapping with directory names
-  (setq mytag (s-replace "_" "." mytag))
-
-  ;; build directory name
-  (setq mydir (concat mybasedir "/" mytag "_*"))
-	
-  ;; expand the wildcard to get full name
-	;; file-expand-wildcards returns a list; pick the first element with car
-  ;;(setq mydir (file-expand-wildcards mydir))
-  (setq mydir (car (file-expand-wildcards mydir)))
-
-
-  ;; open this directory in a new frame of emacs (within dired)
-  ;;(dired-other-frame mydir)
-
-  ;; open this directory with system's file viewer
-  ;; replaces spaces with escaped ones for use with system's file viewer
-  ;;(if (s-match " " mydir) ;;it should be like this ideally
-  (if (and *sys-mac* (equal mydocdirstr "google")) ;this will have a space on Mac
-		(setq mydirsys (s-replace " " "\\ " mydir))
-		(setq mydirsys mydir)
-	)
-
-  ;;on Windows, replace / with \ in filepath before sending it to explorer
-  (if *sys-win32*
-		(setq mydirsys (s-replace "/" "\\" mydir))
-	)
-  ;(shell-command (concat *gs-file-manager* mydirsys))
-  (concat mydirsys)
-)
-#+end_src
-
-#+begin_src emacs-lisp
-(defun gs/get-resource-dir-try ()
-"Gets the name of the document resource directory of the current headline within the org file"
-  (interactive)
-	
-	;; obtain the DOCDIR (google / mega / dropbox / nas) from the PROPERTIES
-  ;; get the base directory from DOCDIR keyword of the file
-  ;; this specifies whether the related documents are on MEGA, Dropbox,
-  ;; Google Drive or NAS 
-  ;; this keyword is DOCDIR -- must be defined in the PROPERTIES of the headline
-  ;;get the identifier for file location
+	(gs/debug-print '(org-get-tags-at))   ;default at point
   (let ((mydocdirstr (car (org-property-values "DOCDIR")))
 				(mybasedir *gs-google-d*)
-				(mytag (car (org-get-tags)))
+				(mytag (car 
+				          (save-excursion
+                    (org-back-to-heading)
+                    (org-get-tags-at))))
+				;(mytag (car (org-get-tags)))
        )
     ; first tag (in mytag) should be in the format XXX_Y_Z where XXX, Y, Z are all numbers which classifies the heading (e.g. 405_2_1)
     ; corresponding directory name will be 405.2.1_name
 
 		;;set appropriate base directory based on DOCDIR
 		(cond 
-				((equal mydocdirstr "google")(setq mybasedir *gs-google-d*))
 				((equal mydocdirstr "dropbox")(setq mybasedir *gs-dropbox-d*))
 				((equal mydocdirstr "mega")(setq mybasedir *gs-mega-d*))
 				((equal mydocdirstr "nas")(setq mybasedir *gs-nas-d*))
@@ -762,21 +709,21 @@ Of course, this will not work for windows.
 	(message mydir)
 
   );let
+
 );defun gs/get-resource-dir-try
 #+end_src
+
 - Function to open the resource directory linked with the current headline (through keyword DOCDIR within PROPERTIES)
 #+begin_src emacs-lisp
 (defun gs/open-resource-dir ()
 "Opens document resource directory of the current headline within the org file"
   (interactive)
-  (setq org-cmd (concat *gs-file-manager* (gs/get-resource-dir-try)))
+  (setq org-cmd (concat *gs-file-manager* (gs/get-resource-dir)))
 	(gs/debug-print 'org-cmd)
   (shell-command org-cmd)
-  ;(shell-command (concat *gs-file-manager* (gs/get-resource-dir)))
 
   ;; open this directory in a new frame of emacs (within dired)
   ;;(dired-other-frame mydir)
-
 )
 #+end_src
 

@@ -1305,7 +1305,8 @@ https://github.com/alpha22jp/atomic-chrome
 #+begin_src emacs-lisp
 (use-package simple-httpd
   :ensure t)
-(httpd-serve-directory "~/code/gaurav-iitgn.github.io/my-org-site/public")
+(if *gs-setup-localhost* 
+  (httpd-serve-directory "~/code/gaurav-iitgn.github.io/my-org-site/public"))
 
 #+end_src
 

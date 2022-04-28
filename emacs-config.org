@@ -720,7 +720,7 @@ Of course, this will not work for windows.
   (interactive)
   (setq org-cmd (concat *gs-file-manager* (gs/get-resource-dir)))
 	(gs/debug-print 'org-cmd)
-  (shell-command org-cmd)
+  (async-shell-command org-cmd)
 
   ;; open this directory in a new frame of emacs (within dired)
   ;;(dired-other-frame mydir)

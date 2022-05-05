@@ -247,7 +247,9 @@ Didn't find anything better then leuven to my liking.
 (column-number-mode)
 (show-paren-mode 1)
 (global-visual-line-mode t)
+(global-auto-revert-mode t)
 #+end_src
+
 
 ** Use visual bell (flash the mode line instead of a bell or whole frame).
 
@@ -393,7 +395,20 @@ Source: http://www.whattheemacsd.com/.
                    name (file-name-nondirectory new-name)))))))
 
 #+end_src
-
+** Function to mass delete buffers of different kinds
+to be fixed.
+#+begin_src emacs-lisp :tangle yes
+(defun gs/kill-all-buffers-except-toolbox ()
+  "Kill all buffers except current one and toolkit (*Messages*, *scratch*). Close other windows."
+  (interactive)
+  (mapc 'kill-buffer (remove-if
+                       (lambda (x)
+                         (or
+                           (eq x (current-buffer))
+                           (member (buffer-name x) '("*Messages*" "*scratch*"))))
+                       (buffer-list)))
+  (delete-other-windows))
+#+end_src
 
 ** Which key
 #+begin_src emacs-lisp :tangle yes
@@ -1214,7 +1229,7 @@ https://github.com/atgreen/paperless
 https://github.com/jkitchin/org-ref/
 https://github.com/jkitchin/org-ref/blob/master/org-ref.org
 https://github.com/tmalsburg/helm-bibtex
-#+begin_src emacs-lisp :tangle yes :tangle yes
+#+begin_src emacs-lisp :tangle yes
 (defvar gs-lit-repo (concat *gs-google-d* "/lit_repo"))
 (use-package pdf-tools
   :ensure t
@@ -1241,7 +1256,7 @@ https://github.com/tmalsburg/helm-bibtex
 ; location of notes linked with PDF files (one file per publication)
 ; notes will be created as bibtex-key.org
 (setq bibtex-completion-notes-path
-      `(,(concat gs-lit-repo "/my-notes")))
+      (concat gs-lit-repo "/my-notes/"))
 (setq bibtex-completion-notes-template-multiple-files "* ${author-or-editor}, ${title}, ${journal}, (${year}) :${=type=}: \n\nSee [[cite:&${=key=}]]\n")
 ; display formats
 (setq bibtex-completion-display-formats

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Today
+# key: today
+# --
+
+* `(concat "<" (format-time-string "%Y-%m-%d %a") ">")`
+** [] events

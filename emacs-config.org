@@ -1,4 +1,4 @@
-#+TTITLE: Emacs Configuration
+#+TITLE: Emacs Configuration
 # Started from Harry Schwartz's configuration ideas
 # https://emacs.readthedocs.io/en/latest/index.html
 # Subsequently, I have copied from the config of many persons.
@@ -751,6 +751,15 @@ Of course, this will not work for windows.
 )
 #+end_src
 
+*** Custom Agenda views and customized behavior
+- Try predictive (https://www.dr-qubit.org/predictive.html)
+#+begin_src emacs-lisp :tangle yes
+(use-package auto-complete)
+(use-package fuzzy)
+;(setq ac-auto-start nil)
+(define-key ac-mode-map (kbd "TAB") 'auto-complete)
+(add-to-list 'ac-dictionary-directories "~/.dict")
+#+end_src
 
 *** Custom Agenda views and customized behavior
 #+begin_src emacs-lisp :tangle yes

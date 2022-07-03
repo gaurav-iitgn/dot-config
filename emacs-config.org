@@ -1592,7 +1592,8 @@ Not using currently.
 (set-register ?E (cons 'file "~/code/dot-config/emacs-config.org"))
 (set-register ?I (cons 'file (concat *gs-mega-d* "/Notes/000_Inbox.org")))
 (set-register ?J (cons 'file (concat *gs-mega-d* "/ledger/data/journal.ledger")))
-(set-register ?C (cons 'file (concat *gs-mega-d* "/bin/gen_cat.csv")))
+(set-register ?C (cons 'file (concat *gs-mega-d* "/Notes/all_cats.org")))
+;(set-register ?C (cons 'file (concat *gs-mega-d* "/bin/gen_cat.csv")))
 (set-register ?R (cons 'file (concat *gs-google-d* "/lit_repo/all_entries.bib")))
 #+end_src
 

@@ -751,48 +751,11 @@ Of course, this will not work for windows.
 )
 #+end_src
 
-*** Custom Agenda views and customized behavior
-- Try predictive (https://www.dr-qubit.org/predictive.html) [compilation errors]
-- Try company-fuzzy (https://github.com/jcs-elpa/company-fuzzy)
+*** Auto completion of (custom) tags in org-mode
+- Try with helm (helm-{dictionary,addressbook,wordnet,etc})
+- no success so far
 #+begin_src emacs-lisp :tangle yes
-;(use-package auto-complete)
-;(use-package fuzzy)
-;(setq ac-auto-start nil)
-;(define-key ac-mode-map (kbd "TAB") 'auto-complete)
-;(add-to-list 'ac-dictionary-directories "~/.dict")
 
-(use-package flx)
-(use-package company)
-
-; company-mode backend trial
-; https://sixty-north.com/blog/writing-the-simplest-emacs-company-mode-backend.html
-(defconst sample-completions
-  '("alan" "john" "ada" "don" "a name" "my name"))
-
-(require 'cl-lib)
-(require 'company)
-(defun company-sample-backend (command &optional arg &rest ignored)
-  (interactive (list 'interactive))
-
-  (cl-case command
-    (interactive (company-begin-backend 'company-sample-backend))
-    (prefix (and (eq major-mode 'fundamental-mode)
-                 (company-grab-symbol)))
-    (candidates
-    (cl-remove-if-not
-       (lambda (c) (string-prefix-p arg c))
-       sample-completions))))
-; above works with keywords having spaces
-; but company-fuzzy does not work then
-
-(use-package company-fuzzy
-  :hook (company-mode . company-fuzzy-mode)
-  :init 
-  (setq company-fuzzy-sorting-backend 'flx
-        company-fuzzy-prefix-on-top nil
-        company-fuzzy-history-backends '(company-yasnippet)
-        company-fuzzy--backends '(company-sample-backend)
-        company-fuzzy-trigge-symbols '("." "->" "<" "\"" "@")))
 #+end_src
 
 *** Custom Agenda views and customized behavior

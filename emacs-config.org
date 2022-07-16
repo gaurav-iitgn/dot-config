@@ -1514,6 +1514,31 @@ Not using currently.
 ))
 #+end_src
 
+** SMTP Send mail
+#+begin_src emacs-lisp :tangle yes
+;; mail address and use name
+(setq user-mail-address "gauravs@iitgn.ac.in"
+      user-full-name "Gaurav Srivastava")
+
+;;----------------------------------------------
+;;SMTP configuration
+;;----------------------------------------------
+(require 'smtpmail)
+(setq smtpmail-smtp-server "smtp.gmail.com"
+      send-mail-function 'smtpmail-send-it
+      message-send-mail-function 'smtpmail-send-it
+      smtpmail-starttls-credentials '(("smtp.gmail.com" "587" nil nil))
+      smtpmail-auth-credentials '(expand-file-name "~/.authinfo")
+      smtpmail-smtp-service 587
+      smtpmail-debug-info t
+)
+
+;; add Cc and Bcc headers to the message buffer
+(setq message-default-mail-headers "Cc: \nBcc: \n")
+
+(setq message-kill-buffer-on-exit t)
+#+end_src
+
 
 ** Setup notmuch email related things
 - Taken from: [[kkatsuyuki.github.io/notmuch-conf]]

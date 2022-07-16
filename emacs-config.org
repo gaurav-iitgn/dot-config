@@ -480,6 +480,7 @@ Of course, this will not work for windows.
 
 #+begin_src emacs-lisp :tangle yes
 (require 'org)
+(use-package org-mime)
 #+end_src
 
 *** set org directory, agenda files etc
@@ -1537,6 +1538,12 @@ Not using currently.
 (setq message-default-mail-headers "Cc: \nBcc: \n")
 
 (setq message-kill-buffer-on-exit t)
+
+; function to send org headline as an email
+(defun gs/send-headline ()
+  "Send current headline and contents of an org file (subtree) as an email"
+  (interactive)
+  (org-mime-org-subtree-htmlize))
 #+end_src
 
 

@@ -6,9 +6,9 @@
 # requires installation of xvkbd and xbindkeys
 # for debian: sudo apt install xvkbd xbindkeys
 
-cp ~/code/dot-config/dot-xbindkeysrc ~/.xbindkeysrc
-killall -s1 xbindkeys
-xbindkeys
+# cp ~/code/dot-config/dot-xbindkeysrc ~/.xbindkeysrc
+# killall -s1 xbindkeys
+# xbindkeys
 
 # xkbset: sudo apt install xkbset
 # this is to get sticky modifier keys

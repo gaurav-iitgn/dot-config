@@ -951,28 +951,28 @@ Of course, this will not work for windows.
 #+end_src
 
 ** Helm and its configuration
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
 (use-package helm
   :ensure t
-  :bind (("M-x"     . helm-M-x)
-         ("M-y"     . helm-show-kill-ring)
-         ("C-x b"   . helm-mini)
-         ("C-x C-b" . helm-buffers-list)
-         ("C-x C-f" . helm-find-files)
-				 ("C-c h g" . helm-google-suggest)
-         ("C-h r"   . helm-info-emacs)
-         ("C-h l" . helm-locate_library)
-  ;;       ("C-x r b" . helm-filtered-bookmarks)  ; Use helm bookmarks
-         ("C-c f"   . helm-recentf)
-         ("C-c j"   . helm-imenu)
-         ("C-c C-r" . helm-resume)
-  ;;       :map helm-map
-  ;;       ("<tab>" . helm-execute-persistent-action)  ; Rebind tab to run persistent action
-  ;;       ("C-i"   . helm-execute-persistent-action)  ; Make TAB work in terminals
-  ;;       ("C-z"   . helm-select-action)  ; List actions
-  ;;       :map shell-mode-map  ;; Shell history
-  ;;       ("C-c C-l" . helm-comint-input-ring)
-         )
+  ;;  :bind (("M-x"     . helm-M-x)
+  ;;         ("M-y"     . helm-show-kill-ring)
+  ;;         ("C-x b"   . helm-mini)
+  ;;         ("C-x C-b" . helm-buffers-list)
+  ;;         ("C-x C-f" . helm-find-files)
+  ;;        			 ("C-c h g" . helm-google-suggest)
+  ;;         ("C-h r"   . helm-info-emacs)
+  ;;         ("C-h l" . helm-locate_library)
+  ;;  ;;       ("C-x r b" . helm-filtered-bookmarks)  ; Use helm bookmarks
+  ;;         ("C-c f"   . helm-recentf)
+  ;;         ("C-c j"   . helm-imenu)
+  ;;         ("C-c C-r" . helm-resume)
+  ;;  ;;       :map helm-map
+  ;;  ;;       ("<tab>" . helm-execute-persistent-action)  ; Rebind tab to run persistent action
+  ;;  ;;       ("C-i"   . helm-execute-persistent-action)  ; Make TAB work in terminals
+  ;;  ;;       ("C-z"   . helm-select-action)  ; List actions
+  ;;  ;;       :map shell-mode-map  ;; Shell history
+  ;;  ;;       ("C-c C-l" . helm-comint-input-ring)
+  ;;         )
   :config
   ;; See https://github.com/bbatsov/prelude/pull/670 for a detailed
   ;; discussion of these options.
@@ -1006,7 +1006,8 @@ Of course, this will not work for windows.
 
   ;;(substitute-key-definition 'find-tag 'helm-etags-select global-map)
 )
-(helm-mode 1)
+; don't turn on by default
+; (helm-mode 1)
 
 ;this needs some fixing. does not work on MacOS
 ;Error: get-device-terminal "ns" does not exist 

@@ -1301,8 +1301,6 @@ https://github.com/jkitchin/org-ref/
 https://github.com/jkitchin/org-ref/blob/master/org-ref.org
 https://github.com/tmalsburg/helm-bibtex
 #+begin_src emacs-lisp :tangle yes
-(if (not *sys-win32*)
-(progn
 (defvar gs-lit-repo (concat *gs-google-d* "/lit_repo"))
 (use-package pdf-tools
   :ensure t
@@ -1371,7 +1369,6 @@ https://github.com/tmalsburg/helm-bibtex
 (define-key bibtex-mode-map (kbd "H-b") 'org-ref-bibtex-hydra/body)
 (define-key org-mode-map (kbd "C-c ]") 'org-ref-insert-link)
 (define-key org-mode-map (kbd "s-[") 'org-ref-insert-link-hydra/body)
-));*win-32*
 #+end_src
 
 

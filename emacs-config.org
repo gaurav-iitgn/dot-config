@@ -842,6 +842,18 @@ Of course, this will not work for windows.
 #+end_src
 
 
+** Google calendar sync with =gcal=
+#+begin_src emacs-lisp :tangle yes
+(use-package org-gcal
+		:ensure t
+		:config
+				(setq org-gcal-client-id *gs-gcal-client-id*
+						org-gcal-client-secret *gs-gcal-client-secret*
+						org-gcal-file-alist '(("c_dkuvktbde55novv834t98om1u0@group.calendar.google.com" .  "~/MEGA/Notes/google-org-calendar.org"))))
+(add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync)))
+#+end_src
+
+
 ** Ledger and its configuration
 #+begin_src emacs-lisp :tangle yes
 	;; (use-package company)

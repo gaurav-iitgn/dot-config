@@ -842,6 +842,23 @@ Of course, this will not work for windows.
 #+end_src
 
 
+
+** ORG Journal
+
+#+begin_src emacs-lisp :tangle yes
+(use-package org-journal
+  :ensure t
+  :defer t
+  :init
+  ;; Change default prefix key; needs to be set before loading org-journal
+  (setq org-journal-prefix-key "C-c j ")
+  :config
+  (setq org-journal-dir (concat *gs-mega-d* "/Notes/")
+        org-journal-file-type 'yearly
+        org-journal-date-format "%A, %d %B %Y"))
+#+end_src
+
+
 ** Google calendar sync with =gcal=
 #+begin_src emacs-lisp :tangle yes
 (use-package org-gcal
@@ -850,7 +867,7 @@ Of course, this will not work for windows.
 				(setq org-gcal-client-id *gs-gcal-client-id*
 						org-gcal-client-secret *gs-gcal-client-secret*
 						org-gcal-file-alist '(("c_dkuvktbde55novv834t98om1u0@group.calendar.google.com" .  "~/MEGA/Notes/google-org-calendar.org"))))
-(add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync)))
+; (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync)))
 #+end_src
 
 

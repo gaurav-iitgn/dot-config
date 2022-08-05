@@ -1,5 +1,4 @@
-#+TITLE: Emacs Configuration
-# Started from Harry Schwartz's configuration ideas
+#+TITLE: Emacs Configuration # Started from Harry Schwartz's configuration ideas
 # https://emacs.readthedocs.io/en/latest/index.html
 # Subsequently, I have copied from the config of many persons.
 
@@ -843,20 +842,6 @@ Of course, this will not work for windows.
 
 
 
-** ORG Journal
-
-#+begin_src emacs-lisp :tangle yes
-(use-package org-journal
-  :ensure t
-  :defer t
-  :init
-  ;; Change default prefix key; needs to be set before loading org-journal
-  (setq org-journal-prefix-key "C-c j ")
-  :config
-  (setq org-journal-dir (concat *gs-mega-d* "/Notes/")
-        org-journal-file-type 'yearly
-        org-journal-date-format "%A, %d %B %Y"))
-#+end_src
 
 
 ** Google calendar sync with =gcal=
@@ -1497,6 +1482,111 @@ To open directory tree on the left pane
 ;;(server-start)
 #+end_src
 
+
+* Personalized journal workflow functions
+- https://emacs.stackexchange.com/questions/36478/generate-a-list-of-calendar-days-for-a-year
+#+BEGIN_SRC emacs-lisp
+(defun gs/my-date-list (start end &optional format limits)
+	"Generate a list of days from START date to END date.
+The list contains for each day the string generated
+with `format-time-string' with format string FORMAT.
+LIMITS is the list of changes indicated by extra header lines.
+Valid list entries are pairs (month . \"%B\") and (year . \"%Y\")."
+	(interactive "sStart time:\nsEnd time:")
+	(unless format
+		(setq format "%b %d, %a"))
+	(when (stringp start)
+		(setq start (parse-time-string start)))
+	(when (stringp end)
+		(setq end (parse-time-string end)))
+	(setq start (cl-substitute 0 nil start)
+				end (cl-substitute 0 nil end))
+	(let ((time (apply #'encode-time start))
+				(end-time (apply #'encode-time end))
+				(one-day (days-to-time 1))
+				(year (nth 5 start))
+				fmt-year
+				fmt-month
+				(month (nth 4 start))
+				ret)
+		(when (setq fmt-year (assoc-string 'year limits))
+			(setq ret (list (format-time-string (cdr fmt-year) start))))
+		(when (setq fmt-month (assoc-string 'month limits))
+			(setq ret (list (format-time-string (cdr fmt-month) start))))
+		(while (null (time-less-p end-time time))
+			(let* ((date (decode-time time))
+						 (new-year (nth 5 date))
+						 (new-month (nth 4 date)))
+				(when (and (assoc-string 'year limits)
+									 (/= new-year year))
+					(setq ret (cons (format-time-string (cdr fmt-year) time) ret)
+								year new-year))
+				(when (and (assoc-string 'month limits)
+									 (/= new-month month))
+					(setq ret (cons (format-time-string (cdr fmt-month) time) ret)
+								month new-month))
+				(setq ret (cons (format-time-string format time) ret)
+							time (time-add time one-day))))
+		(nreverse ret)))
+
+(defun gs/calendar-list (start end)
+	"Create a calendar from START date to END date."
+	(interactive "sStart date:\nsEnd date:")
+	(with-current-buffer (get-buffer-create "*calendar-list*")
+		(delete-region (point-min) (point-max))
+		;(insert (mapconcat (lambda (date) (concat "* " date)) (gs/my-date-list start end nil nil) "\n"))
+		(insert (mapconcat (lambda (date) (concat "* " date)) (gs/my-date-list start end nil '((month . "%B"))) "\n"))
+		(display-buffer (current-buffer))))
+
+(defun gs/calendar-year (year)
+	"Create a calendar of a given year"
+	(interactive "sYear:")
+	(with-current-buffer (get-buffer-create "*calendar-list*")
+		(delete-region (point-min) (point-max))
+    (setq start (concat year "-01-01"))
+    (setq end (concat year "-12-31"))
+		(insert (mapconcat (lambda (date) (concat "* " date)) (my-date-list start end) "\n"))
+		(display-buffer (current-buffer))))
+
+(defun gs/create-journal-entry (full-date)
+  "Create a journal entry. full-date is a string of format YYYY-MM-DD"
+	(setq split-date-str (s-split "-" full-date))
+	(setq split-date-num (mapcar 'string-to-number split-date-str))
+  (setq year (nth 0 split-date-str))
+  (setq month (nth 1 split-date-num))
+  (setq date (nth 2 split-date-str))
+  (setq fname (concat *gs-mega-d* "/Notes/" year ".org"))
+	(setq fmt-date (concat (substring (calendar-month-name month) 0 3) " "
+                 date ", "
+                 (substring (calendar-day-name (list (nth 1 split-date-num)
+                                                     (nth 2 split-date-num)
+                                                     (nth 0 split-date-num)))
+                  0 3)))
+  (setq time (format-time-string "%H:%M "))
+  (find-file-other-window fname)
+  (with-current-buffer (current-buffer)
+    (goto-char (point-min))
+    (search-forward fmt-date)
+    (save-restriction
+      (org-narrow-to-subtree)
+      (goto-char (point-max))
+      (insert (concat "\n** " time))
+      (evil-append 1)
+    )
+  )
+)
+
+(defun gs/new-journal-entry (&optional date)
+  (interactive)
+  (gs/create-journal-entry (org-read-date))
+)
+
+(defun gs/today ()
+  "Create a new entry under today's date in yearly journal"
+  (interactive)
+  (gs/create-journal-entry (org-read-date nil nil "today"))
+)
+#+END_SRC
 
 * Email in emacs
 Not using currently.

@@ -1577,6 +1577,7 @@ Valid list entries are pairs (month . \"%B\") and (year . \"%Y\")."
 )
 
 (defun gs/new-journal-entry (&optional date)
+  "Create new journal entry. Asks the date"
   (interactive)
   (gs/create-journal-entry (org-read-date))
 )

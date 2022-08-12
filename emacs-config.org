@@ -1499,7 +1499,7 @@ To open directory tree on the left pane
 
 * Personalized journal workflow functions
 - https://emacs.stackexchange.com/questions/36478/generate-a-list-of-calendar-days-for-a-year
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle yes
 (defun gs/my-date-list (start end &optional format limits)
 	"Generate a list of days from START date to END date.
 The list contains for each day the string generated

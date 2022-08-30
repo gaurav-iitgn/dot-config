@@ -1286,30 +1286,53 @@ This adds a babel language 'latex-macros' which streamlines including latex head
 #+END_SRC
 
 
-- following is for latex: auctex
-- taken from: https://tex.stackexchange.com/questions/461851/sumatra-pdf-forward-and-inverse-search-emacs
+- following is for latex: auctex setup
+- taken from:
+- https://www.reddit.com/r/emacs/comments/cd6fe2/how_to_make_emacs_a_latex_ide/
+- This requires pdf-tools setup which has been done elsewhere
 
 #+begin_src emacs-lisp :tangle yes
-(setq TeX-PDF-mode t)
-(setq TeX-source-correlate-mode t)
-(setq TeX-source-correlate-method 'synctex)
-(setq TeX-view-program-list '(("Sumatra PDF" ("\"C:/Program Files/SumatraPDF/SumatraPDF.exe\" -reuse-instance" (mode-io-correlate " -forward-search %b %n ") " %o"))))
-(eval-after-load 'tex
- '(progn
-   (assq-delete-all 'output-pdf TeX-view-program-selection)
-   (add-to-list 'TeX-view-program-selection '(output-pdf "Sumatra PDF"))))
-#+end_src
+(use-package auctex-latexmk
+  :ensure t
+  :config
+  (auctex-latexmk-setup)
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t))
 
+(use-package reftex
+  :ensure t
+  :defer t
+  :config
+  (setq reftex-cite-prompt-optional-args t)) ;; Prompt for empty optional arguments in cite
 
-- following is from: https://william.famille-blum.org/blog/static.php?page=static081010-000413
-	
-#+begin_src emacs-lisp :tangle yes
-;;(custom-set-variables '(TeX-source-correlate-method (quote synctex)) '(TeX-source-correlate-mode t) '(TeX-source-correlate-start-server t) '(TeX-view-program-list (quote (("Sumatra PDF" "\"C:/Program Files/SumatraPDF/SumatraPDF.exe\" -reuse-instance %o")))))(custom-set-faces)
-;;(eval-after-load 'tex
- ;;'(progn
-   ;;(assq-delete-all 'output-pdf TeX-view-program-selection)
-   ;;(add-to-list 'TeX-view-program-selection '(output-pdf "Sumatra PDF")))
- ;;)
+(use-package auto-dictionary
+  :ensure t
+  :init(add-hook 'flyspell-mode-hook (lambda () (auto-dictionary-mode 1))))
+
+(use-package company-auctex
+  :ensure t
+  :init (company-auctex-init))
+
+(use-package tex
+  :ensure auctex
+  :mode ("\\.tex\\'" . latex-mode)
+  :config (progn
+	    (setq TeX-source-correlate-mode t)
+	    (setq TeX-source-correlate-method 'synctex)
+	    (setq TeX-auto-save t)
+	    (setq TeX-parse-self t)
+	    (setq-default TeX-master "paper.tex")
+	    (setq reftex-plug-into-AUCTeX t)
+	    (pdf-tools-install)
+	    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+		  TeX-source-correlate-start-server t)
+	    ;; Update PDF buffers after successful LaTeX runs
+	    (add-hook 'TeX-after-compilation-finished-functions
+		      #'TeX-revert-document-buffer)
+	    (add-hook 'LaTeX-mode-hook
+		      (lambda ()
+			(reftex-mode t)
+			(flyspell-mode t)))
+	    ))
 #+end_src
 
 
@@ -1319,8 +1342,8 @@ https://github.com/atgreen/paperless
 (use-package ido-completing-read+)
 (use-package paperless)
 (custom-set-variables
- '(paperless-capture-directory "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/paperless/downloads")
- '(paperless-root-directory "/Users/gaurav/Google Drive/My Drive/New_System/lit_repo/paperless/filed"))
+ '(paperless-capture-directory (concat *gs-google-d* "/lit_repo/paperless/downloads"))
+ '(paperless-root-directory (concat *gs-google-d* "/lit_repo/paperless/filed")))
 #+end_src
 
 

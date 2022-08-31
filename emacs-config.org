@@ -81,6 +81,10 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 (defconst *pdflatex*
   (executable-find "pdflatex")
   "Do we have pdflatex?")
+
+(defconst *this-year*
+  (format-time-string "%Y" (current-time))
+  "String of current year YYYY")
 #+end_src
 
 ** A function to print usable debug messages during execution
@@ -501,21 +505,40 @@ Of course, this will not work for windows.
 *** setup of inbox and other files, capture templates, etc.
 
 #+begin_src emacs-lisp :tangle yes
-(defvar gs/org-inbox-file (concat *gs-mega-d* "/Notes/000_Inbox.org"))
+(defun gs/fmt-journal-time-str (full-date)
+  "Returns date in custom journal date format. See also
+   gs/create-journal-entry"
+	(setq split-date-str (s-split "-" full-date))
+	(setq split-date-num (mapcar 'string-to-number split-date-str))
+  (setq year (nth 0 split-date-str))
+  (setq month (nth 1 split-date-num))
+  (setq date (nth 2 split-date-str))
+  (setq fname (concat *gs-mega-d* "/Notes/" year ".org"))
+	(concat (substring (calendar-month-name month) 0 3) " "
+                 date ", "
+                 (substring (calendar-day-name (list (nth 1 split-date-num)
+                                                     (nth 2 split-date-num)
+                                                     (nth 0 split-date-num)))
+                  0 3))
+)
+
+(defvar gs/org-inbox-file (concat *gs-mega-d* "/Notes/" *this-year* ".org"))
+(defvar gs/today-capture-headline
+  (concat "" (gs/fmt-journal-time-str (org-read-date nil nil "today")) "" ))
 
 ;; t is for quick TODO capture
 ;; 'e' is for email TODO capture and 'r' is for email archive capture (if an email is related to an ongoing issue)
 ;; Both 'e' and 'r' rely on a browser plugin (GS-ORG-CAPTURE) that copies Email subject and URL for use by the capture template (%x)
 (setq org-capture-templates
-  '(("t" "Quick Todo" entry (file+headline gs/org-inbox-file "Quick Todos")
+  `(("t" "Quick Todo" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
 		 "* TODO %^{Task}\n" :immediate-finish t)
     ("i" "Thoughts and Ideas" entry (file+headline gs/org-inbox-file "Ideas")
 		 "* %^{Idea}\n" :immediate-finish t)
-    ("e" "Email Todo" entry (file+headline gs/org-inbox-file "Dump from GMail")
-		 "* TODO %x\n")
-    ("r" "Email Resource" entry (file+headline gs/org-inbox-file "Dump from GMail")
-		 "* %x\n")
-    ("m" "Meeting" entry (file+headline gs/org-inbox-file "Meetings")
+    ("e" "Email Todo" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
+		 "* TODO Email %x %?\n")
+    ("r" "Email Resource" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
+		 "* Resource Email %x %?\n")
+    ("m" "Meeting" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
 		 "* %t %?")
 	 ))
 #+end_src
@@ -857,7 +880,7 @@ Of course, this will not work for windows.
 
 
 ** Ledger and its configuration
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
 	;; (use-package company)
 	;; (use-package company-ledger
 	;; 	:ensure company
@@ -1561,6 +1584,8 @@ Valid list entries are pairs (month . \"%B\") and (year . \"%Y\")."
     (setq end (concat year "-12-31"))
 		(insert (mapconcat (lambda (date) (concat "* " date)) (my-date-list start end) "\n"))
 		(display-buffer (current-buffer))))
+
+
 
 (defun gs/create-journal-entry (full-date)
   "Create a journal entry. full-date is a string of format YYYY-MM-DD"

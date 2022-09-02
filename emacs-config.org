@@ -523,22 +523,23 @@ Of course, this will not work for windows.
 )
 
 (defvar gs/org-inbox-file (concat *gs-mega-d* "/Notes/" *this-year* ".org"))
-(defvar gs/today-capture-headline
+(defun gs/today-capture-headline ()
+  (interactive)
   (concat "" (gs/fmt-journal-time-str (org-read-date nil nil "today")) "" ))
 
 ;; t is for quick TODO capture
 ;; 'e' is for email TODO capture and 'r' is for email archive capture (if an email is related to an ongoing issue)
 ;; Both 'e' and 'r' rely on a browser plugin (GS-ORG-CAPTURE) that copies Email subject and URL for use by the capture template (%x)
 (setq org-capture-templates
-  `(("t" "Quick Todo" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
+  `(("t" "Quick Todo" entry (file+headline gs/org-inbox-file ,(gs/today-capture-headline))
 		 "* TODO %^{Task}\n" :immediate-finish t)
     ("i" "Thoughts and Ideas" entry (file+headline gs/org-inbox-file "Ideas")
 		 "* %^{Idea}\n" :immediate-finish t)
-    ("e" "Email Todo" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
+    ("e" "Email Todo" entry (file+headline gs/org-inbox-file ,(gs/today-capture-headline))
 		 "* TODO Email %x %?\n")
-    ("r" "Email Resource" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
+    ("r" "Email Resource" entry (file+headline gs/org-inbox-file ,(gs/today-capture-headline))
 		 "* Resource Email %x %?\n")
-    ("m" "Meeting" entry (file+headline gs/org-inbox-file ,gs/today-capture-headline)
+    ("m" "Meeting" entry (file+headline gs/org-inbox-file ,(gs/today-capture-headline))
 		 "* %t %?")
 	 ))
 #+end_src
@@ -1314,7 +1315,7 @@ This adds a babel language 'latex-macros' which streamlines including latex head
 - https://www.reddit.com/r/emacs/comments/cd6fe2/how_to_make_emacs_a_latex_ide/
 - This requires pdf-tools setup which has been done elsewhere
 
-#+begin_src emacs-lisp :tangle yes
+#+begin_src emacs-lisp :tangle no
 (use-package auctex-latexmk
   :ensure t
   :config

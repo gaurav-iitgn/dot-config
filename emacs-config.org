@@ -425,6 +425,14 @@ to be fixed.
 
 
 * Enable, disable and configure packages
+** dashboard
+#+begin_src emacs-lisp :tangle yes
+(use-package dashboard
+  :ensure t
+  :config
+    (dashboard-setup-startup-hook))
+#+end_src
+
 ** To inherit executable paths from Shell
 Of course, this will not work for windows.
 #+begin_src emacs-lisp :tangle yes

@@ -431,6 +431,11 @@ to be fixed.
   :ensure t
   :config
     (dashboard-setup-startup-hook))
+(setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+(setq dashboard-items '((agenda . 10)
+                        (recents . 5)
+                        (registers . 5)
+                        (recents . 5)))
 #+end_src
 
 ** To inherit executable paths from Shell

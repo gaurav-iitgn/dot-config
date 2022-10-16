@@ -116,6 +116,11 @@ Change "yes or no" to "y or n" for faster response.
 (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src
 
+Save silently without prompting.
+#+begin_src emacs-lisp :tangle yes
+(setq save-silently t)
+#+end_src
+
 Display backtrace on error by default.
 #+begin_src emacs-lisp :tangle no
 (setq debug-on-error t)
@@ -274,6 +279,7 @@ Didn't find anything better then leuven to my liking.
 #+begin_src emacs-lisp :tangle yes
   (setq-default tab-width 2)
 	;;(setq tab-width 2)
+(setq org-src-tab-acts-natively t)
 #+end_src
 
 ** Auto-scroll compilation window.
@@ -1501,6 +1507,16 @@ https://github.com/alpha22jp/atomic-chrome
 
 
 ** Project management
+*** Dired customization, consult-find for fuzzy file search
+#+begin_src emacs-lisp :tangle yes
+;; write custom function to find in gs-google-d
+;; C-x C-f does the job for the directory of current file
+(defun gs/search ()
+  "Opens base gdrive directory for fuzzy search"
+  (interactive)
+	(consult-find *gs-google-d*))
+#+end_src
+
 *** Projectile
 #+begin_src emacs-lisp :tangle yes
 (use-package projectile

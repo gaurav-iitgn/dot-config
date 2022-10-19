@@ -1517,6 +1517,49 @@ https://github.com/alpha22jp/atomic-chrome
 	(consult-find *gs-google-d*))
 #+end_src
 
+*** Create new entries in respective places for different things
+#+begin_src emacs-lisp :tangle yes
+;; create a new entry given a tag BASE
+(defun gs/my-new-entry (BASE)
+	"Create an entry and tag for a new entry."
+	(find-file-other-window (concat *gs-mega-d* "/Notes/all_cats.org"))
+	(goto-char (point-min))
+	(search-forward BASE)
+	(org-narrow-to-subtree)
+	(goto-char (point-max))
+	(setq base-tag (car (org-get-tags nil t)))
+	(org-insert-heading)
+	(insert "<<New   ")
+	;; (message "%s\n" base-tag)
+	(setq tag-split-rev (nreverse (s-split "_" base-tag)))
+	(setq tag-last-new (1+ (string-to-number (car tag-split-rev))))
+	(message "%s" tag-last-new)
+	(setcar tag-split-rev (number-to-string tag-last-new))
+	(insert (concat ":" (s-join "_" (nreverse tag-split-rev)) ":"))
+  (org-beginning-of-line)
+	(widen))
+
+; create new entry for: reviewing a new journal article
+(defun gs/new-journal-review ()
+	(interactive)
+	(gs/my-new-entry "209_2"))
+
+; create new entry for: IITGN committee
+(defun gs/new-iitgn-committee ()
+	(interactive)
+	(gs/my-new-entry "402"))
+
+; create new entry for: external committee
+(defun gs/new-external-committee ()
+	(interactive)
+	(gs/my-new-entry "503"))
+
+; create new entry for: invited talk/panel
+(defun gs/new-invited-talk ()
+	(interactive)
+	(gs/my-new-entry "502"))
+#+end_src
+
 *** Projectile
 #+begin_src emacs-lisp :tangle yes
 (use-package projectile

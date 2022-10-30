@@ -1151,7 +1151,10 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 ; install server: npm i -g bash-language-server (after brew install npm)
 (add-hook 'python-mode-hook 'lsp-deferred)
 ; install server: pip3 install python-language-server[all]
+(add-hook 'emacs-lisp-mode-hook 'lsp-deferred)
+
 #+end_src
+
 ** Yaml
 #+begin_src emacs-lisp :tangle yes
 (use-package yaml)
@@ -1163,12 +1166,26 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 (use-package paredit)
 (setq inferior-lisp-program "sbcl")
 #+end_src
-** Lispy
+** Lisp structural editing 
 - https://github.com/abo-abo/lispy
+- https://github.com/countvajhula/symex.el
 #+BEGIN_SRC emacs-lisp :tangle no
 (use-package lispy)
-(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+;(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
+(use-package symex
+  :config
+  (symex-initialize)
+  (global-set-key (kbd "s-;") 'symex-mode-interface))  ; or whatever keybinding you like
+
+; overload <Esc> in evil mode
+(evil-define-key 'normal symex-mode-map
+  (kbd "<escape>") 'symex-mode-interface)
+
+(evil-define-key 'insert symex-mode-map
+  (kbd "<escape>") 'symex-mode-interface)
 #+END_SRC
+
+#+RESULTS:
 
 ** evil-lispy
 - https://github.com/sp3ctum/evil-lispy

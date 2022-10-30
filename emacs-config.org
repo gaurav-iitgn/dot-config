@@ -1170,7 +1170,7 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 ** Lisp structural editing 
 - https://github.com/abo-abo/lispy
 - https://github.com/countvajhula/symex.el
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle yes
 (use-package lispy)
 ;(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (use-package symex
@@ -1190,7 +1190,7 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 
 ** evil-lispy
 - https://github.com/sp3ctum/evil-lispy
-#+BEGIN_SRC emacs-lisp :tangle yes
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package evil-lispy)
 (add-hook 'emacs-lisp-mode-hook #'evil-lispy-mode)
 #+END_SRC

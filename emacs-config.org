@@ -469,6 +469,7 @@ Of course, this will not work for windows.
 (use-package yasnippet)
 (require 'yasnippet)
 (add-to-list 'yas-snippet-dirs "~/code/dot-config/yas-snippets")
+(use-package consult-yasnippet)
 (yas-global-mode 1)
 #+end_src
 

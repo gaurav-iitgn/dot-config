@@ -1526,6 +1526,7 @@ https://github.com/alpha22jp/atomic-chrome
 
 ** Project management
 *** Dired customization, consult-find for fuzzy file search
+- [[file:elisp/my-tag.el]]
 #+begin_src emacs-lisp :tangle yes
 ;; write custom function to find in gs-google-d
 ;; C-x C-f does the job for the directory of current file
@@ -1533,6 +1534,19 @@ https://github.com/alpha22jp/atomic-chrome
   "Opens base gdrive directory for fuzzy search"
   (interactive)
 	(consult-find *gs-google-d*))
+
+;; function to search through tags
+;; currently shows an incrementally searched list of all tags from all_cats
+;; TODO: add functionality to copy tags automatically
+(defun gs/my-tag ()
+	"Provide a completion list with description from all_cats.org"
+	(interactive)
+	(let ((lines (with-temp-buffer
+	 							 (insert-file-contents "~/MEGA/Notes/all_cats.org")
+								 (keep-lines "^\*.*:$")
+	 							 (split-string (buffer-string) "\n" t))))
+	
+	 (insert (completing-read "Response: " lines))))
 #+end_src
 
 *** Create new entries in respective places for different things

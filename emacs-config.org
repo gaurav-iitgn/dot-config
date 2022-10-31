@@ -1152,8 +1152,6 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 ; install server: npm i -g bash-language-server (after brew install npm)
 (add-hook 'python-mode-hook 'lsp-deferred)
 ; install server: pip3 install python-language-server[all]
-(add-hook 'emacs-lisp-mode-hook 'lsp-deferred)
-
 #+end_src
 
 ** Yaml
@@ -1184,6 +1182,10 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 
 (evil-define-key 'insert symex-mode-map
   (kbd "<escape>") 'symex-mode-interface)
+
+; auto complete for elisp
+(use-package company)
+(add-hook 'emacs-lisp-mode-hook #'company-mode)
 #+END_SRC
 
 #+RESULTS:

@@ -438,10 +438,10 @@ to be fixed.
   :config
     (dashboard-setup-startup-hook))
 (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-(setq dashboard-items '((agenda . 10)
-                        (recents . 5)
-                        (registers . 5)
-                        (recents . 5)))
+(setq dashboard-week-agenda nil)
+(setq dashboard-items '((recents . 5)
+                        (projects . 5)
+                        (registers . 5)))
 #+end_src
 
 ** To inherit executable paths from Shell

@@ -509,7 +509,7 @@ Of course, this will not work for windows.
 *** set org directory, agenda files etc
 
 #+begin_src emacs-lisp :tangle yes
-(defvar gs/org-root-dir (concat *gs-mega-d* "/Notes"))
+(defvar gs/org-root-dir (concat *gs-gscloud-d* "/Notes"))
 (setq org-directory gs/org-root-dir)
 (setq org-agenda-files (list gs/org-root-dir))
 
@@ -533,7 +533,7 @@ Of course, this will not work for windows.
   (setq year (nth 0 split-date-str))
   (setq month (nth 1 split-date-num))
   (setq date (nth 2 split-date-str))
-  (setq fname (concat *gs-mega-d* "/Notes/" year ".org"))
+  (setq fname (concat *gs-gscloud-d* "/Notes/" year ".org"))
 	(concat (substring (calendar-month-name month) 0 3) " "
                  date ", "
                  (substring (calendar-day-name (list (nth 1 split-date-num)
@@ -542,7 +542,7 @@ Of course, this will not work for windows.
                   0 3))
 )
 
-(defvar gs/org-inbox-file (concat *gs-mega-d* "/Notes/" *this-year* ".org"))
+(defvar gs/org-inbox-file (concat *gs-gscloud-d* "/Notes/" *this-year* ".org"))
 (defun gs/today-capture-headline ()
   (interactive)
   (concat "" (gs/fmt-journal-time-str (org-read-date nil nil "today")) "" ))
@@ -732,6 +732,7 @@ Of course, this will not work for windows.
 		(cond 
 				((equal mydocdirstr "dropbox")(setq mybasedir *gs-dropbox-d*))
 				((equal mydocdirstr "mega")(setq mybasedir *gs-mega-d*))
+				((equal mydocdirstr "gscloud")(setq mybasedir *gs-gscloud-d*))
 				((equal mydocdirstr "nas")(setq mybasedir *gs-nas-d*))
 		)
 	  (gs/debug-print 'mydocdirstr)
@@ -926,7 +927,7 @@ Of course, this will not work for windows.
 						)
 
 	;; capture templates for org
-  (setq gs-ledger-file (concat *gs-mega-d* "/ledger/data/journal.ledger"))
+  (setq gs-ledger-file (concat *gs-gscloud-d* "/ledger/data/journal.ledger"))
 	(setq org-capture-templates
 				(append '(("l" "Ledger entries")
 									("lc" "SBI Credit Card" plain
@@ -1202,7 +1203,7 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 #+begin_src emacs-lisp :tangle yes
 (use-package go-mode)
 
-;(setenv "GOPATH" (concat *gs-mega-d* "/bin/go"))
+;(setenv "GOPATH" (concat *gs-gscloud-d* "/bin/go"))
 (setenv "GOPATH" "/Users/gaurav/go")
 (require 'flycheck)
 (global-flycheck-mode 1)
@@ -1316,7 +1317,7 @@ https://github.com/redguardtoo/cpputils-cmake
   :bind ("C-c n" . deft)
   :commands (deft)
   :config
-  (setq deft-directory (concat *gs-mega-d* "/Notes")
+  (setq deft-directory (concat *gs-gscloud-d* "/Notes")
         deft-extensions '("org" "md" "txt")
         deft-default-extension "org"
         deft-recursive t
@@ -1556,7 +1557,7 @@ https://github.com/alpha22jp/atomic-chrome
 ;; create a new entry given a tag BASE
 (defun gs/my-new-entry (BASE)
 	"Create an entry and tag for a new entry."
-	(find-file-other-window (concat *gs-mega-d* "/Notes/all_cats.org"))
+	(find-file-other-window (concat *gs-gscloud-d* "/Notes/all_cats.org"))
 	(goto-char (point-min))
 	(search-forward BASE)
 	(org-narrow-to-subtree)
@@ -1724,7 +1725,7 @@ Valid list entries are pairs (month . \"%B\") and (year . \"%Y\")."
   (setq year (nth 0 split-date-str))
   (setq month (nth 1 split-date-num))
   (setq date (nth 2 split-date-str))
-  (setq fname (concat *gs-mega-d* "/Notes/" year ".org"))
+  (setq fname (concat *gs-gscloud-d* "/Notes/" year ".org"))
 	(setq fmt-date (concat (substring (calendar-month-name month) 0 3) " "
                  date ", "
                  (substring (calendar-day-name (list (nth 1 split-date-num)
@@ -1972,10 +1973,10 @@ Not using currently.
 (set-register ?b (cons 'file "~/.bashrc"))
 (set-register ?l (cons 'file "~/.ledgerrc"))
 (set-register ?E (cons 'file "~/code/dot-config/emacs-config.org"))
-(set-register ?I (cons 'file (concat *gs-mega-d* "/Notes/000_Inbox.org")))
-(set-register ?J (cons 'file (concat *gs-mega-d* "/ledger/data/journal.ledger")))
-(set-register ?C (cons 'file (concat *gs-mega-d* "/Notes/all_cats.org")))
-;(set-register ?C (cons 'file (concat *gs-mega-d* "/bin/gen_cat.csv")))
+(set-register ?I (cons 'file (concat *gs-gscloud-d* "/Notes/000_Inbox.org")))
+(set-register ?J (cons 'file (concat *gs-gscloud-d* "/ledger/data/journal.ledger")))
+(set-register ?C (cons 'file (concat *gs-gscloud-d* "/Notes/all_cats.org")))
+;(set-register ?C (cons 'file (concat *gs-gscloud-d* "/bin/gen_cat.csv")))
 (set-register ?R (cons 'file (concat *gs-google-d* "/lit_repo/all_entries.bib")))
 #+end_src
 

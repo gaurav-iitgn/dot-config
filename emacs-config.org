@@ -1910,16 +1910,34 @@ Not using currently.
 
   ;; mail address and use name
   (setq mail-user-agent 'message-user-agent)
-  (setq user-mail-address "gauravs@iitgn.ac.in"
+  (setq user-mail-address "nazeer.observer@gmail.com"
         user-full-name "Gaurav Srivastava")
+  ;(setq user-mail-address "gauravs@iitgn.ac.in"
+        ;user-full-name "Gaurav Srivastava")
 
   ;;----------------------------------------------
   ;;notmuch configuration
   ;;----------------------------------------------
   (setq notmuch-search-oldest-first nil
-        notmuch-fcc-dirs "~/Maildir/gauravs/[Gmail].Sent Mail"
+        notmuch-fcc-dirs "~/mail/Accountname/[Gmail].Sent Mail"
         notmuch-mua-compose-in 'new-frame
   )
+
+	(define-key notmuch-show-mode-map "d"
+		(lambda ()
+    "toggle deleted tag for message"
+    (interactive)
+    (if (member "deleted" (notmuch-show-get-tags))
+        (notmuch-show-tag '("-deleted"))
+      (notmuch-show-tag '("+deleted" "-inbox" "-unread")))))
+
+  (define-key notmuch-search-mode-map "a"
+  (lambda ()
+    "toggle archive"
+    (interactive)
+    (if (member "archive" (notmuch-search-get-tags))
+        (notmuch-search-tag '("-archive"))
+      (notmuch-search-tag '("+archive" "-inbox" "-unread")))))
 
   ;;----------------------------------------------
   ;;SMTP configuration
@@ -1938,11 +1956,11 @@ Not using currently.
   (setq message-default-mail-headers "Cc: \nBcc: \n")
 
   ;; postponed messages be put in draft directory
-  (setq message-auto-save-directory "~/Maildir/gauravs/[Gmail].Drafts")
+  (setq message-auto-save-directory "~/mail/Accountname/[Gmail].Drafts")
   (setq message-kill-buffer-on-exit t)
 
   ;; change the directory to store the sent mail
-  (setq message-directory "~/Maildir/gauravs")
+  (setq message-directory "~/mail/Accountname")
 ))
 #+end_src
 
@@ -1977,7 +1995,7 @@ Not using currently.
 (set-register ?J (cons 'file (concat *gs-gscloud-d* "/ledger/data/journal.ledger")))
 (set-register ?C (cons 'file (concat *gs-gscloud-d* "/Notes/all_cats.org")))
 ;(set-register ?C (cons 'file (concat *gs-gscloud-d* "/bin/gen_cat.csv")))
-(set-register ?R (cons 'file (concat *gs-google-d* "/lit_repo/all_entries.bib")))
+(set-register ?R (cons 'file (concat *gs-gscloud-d* "/lit_repo/all_entries.bib")))
 #+end_src
 
  

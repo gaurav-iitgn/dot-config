@@ -1627,6 +1627,12 @@ To open directory tree on the left pane
 ;)
 #+end_src
 
+** Hyperbole
+#+begin_src emacs-lisp :tangle yes
+(use-package hyperbole)
+(hyperbole-mode 1)
+#+end_src
+
 
 ** Maxima for symbolic math
 #+begin_src emacs-lisp :tangle yes

@@ -1205,6 +1205,7 @@ http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scr
 
 ;(setenv "GOPATH" (concat *gs-gscloud-d* "/bin/go"))
 (setenv "GOPATH" "/Users/gaurav/go")
+(use-package flycheck)
 (require 'flycheck)
 (global-flycheck-mode 1)
 ;
@@ -1404,10 +1405,10 @@ This adds a babel language 'latex-macros' which streamlines including latex head
 https://github.com/atgreen/paperless
 #+begin_src emacs-lisp :tangle yes
 (use-package ido-completing-read+)
-(use-package paperless)
-(custom-set-variables
- '(paperless-capture-directory (concat *gs-google-d* "/lit_repo/paperless/downloads"))
- '(paperless-root-directory (concat *gs-google-d* "/lit_repo/paperless/filed")))
+;(use-package paperless)
+;(custom-set-variables
+; '(paperless-capture-directory (concat *gs-google-d* "/lit_repo/paperless/downloads"))
+; '(paperless-root-directory (concat *gs-google-d* "/lit_repo/paperless/filed")))
 #+end_src
 
 

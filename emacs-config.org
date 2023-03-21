@@ -30,10 +30,6 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 
 ** Constants
 #+begin_src emacs-lisp :tangle yes
-(defconst *sys-gui*
-  (display-graphic-p)
-  "Are we running on a GUI Emacs?")
-
 (defconst *sys-win32*
   (eq system-type 'windows-nt)
   "Are we running on a Windows system?")
@@ -45,42 +41,6 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 (defconst *sys-mac*
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
-
-(defconst *sys-cygwin*
-  (eq system-type 'cygwin)
-  "Are we running on a Cygwin system?")
-
-(defconst *sys-root*
-  (string-equal "root" (getenv "USER"))
-  "Are you a ROOT user?")
-
-(defconst *rg*
-  (executable-find "rg")
-  "Do we have ripgrep?")
-
-(defconst *python*
-  (executable-find "python")
-  "Do we have python?")
-
-(defconst *python3*
-  (executable-find "python3")
-  "Do we have python3?")
-
-(defconst *mvn*
-  (executable-find "mvn")
-  "Do we have Maven?")
-
-(defconst *gcc*
-  (executable-find "gcc")
-  "Do we have gcc?")
-
-(defconst *git*
-  (executable-find "git")
-  "Do we have git?")
-
-(defconst *pdflatex*
-  (executable-find "pdflatex")
-  "Do we have pdflatex?")
 
 (defconst *this-year*
   (format-time-string "%Y" (current-time))
@@ -104,10 +64,8 @@ Rest of the packages are managed by =use-package=. The following ensures =use-pa
 
 * UI preferences
 ** General preferences
-Display time in the emacs status bar and set the default character encoding.
+Set the default character encoding.
 #+begin_src emacs-lisp :tangle yes
-(display-time-mode)
-;;this applies everywhere
 (set-language-environment "UTF-8")
 #+end_src
 
@@ -183,17 +141,6 @@ Disabling for now to see if it enhances working speed.
 (set-window-scroll-bars (minibuffer-window) nil nil)
 #+end_src
 
-
-** Highlight the cursor when the window scrolls.
-Disabling for speed.
-#+begin_src emacs-lisp :tangle no
-(use-package beacon
-  :ensure t
-  :diminish beacon-mode
-  :config
-  (beacon-mode t))
-#+end_src
-
 ** Enable leuven theme and configure doom modeline
 Change mode-line color to something that looks better with the doom-mode-line.
 #+begin_src emacs-lisp  :tangle yes
@@ -221,7 +168,7 @@ Change mode-line color to something that looks better with the doom-mode-line.
 #+end_src
 
 ** Use doom themes
-Didn't find anything better then leuven to my liking.
+Didn't find anything better than leuven to my liking.
 #+begin_src emacs-lisp :tangle no
 (use-package doom-themes
   :ensure t
@@ -288,25 +235,11 @@ Didn't find anything better then leuven to my liking.
   (setq compilation-scroll-output t)
 #+end_src
 
-** Set straight the undo and redo functionality in evil.
-
-#+begin_src emacs-lisp :tangle yes
-  (use-package undo-tree)
-  (global-undo-tree-mode)
-  ;; this is for undo and redo in evil
-  ;; following works with emacs earlier versions
-  (eval-after-load 'evil-maps
-    '(progn
-      (define-key evil-normal-state-map "u" 'undo-tree-undo)
-      (define-key evil-normal-state-map (kbd "C-r") 'undo-tree-redo)
-     )
-  )
-#+end_src
-
 ** For coloring matching parentheses.
 
 #+begin_src emacs-lisp :tangle yes
-  (use-package rainbow-delimiters)
+  (use-package rainbow-delimiters
+    :hook prog-mode)
 #+end_src
 
 ** Line wrap in LaTeX mode.
@@ -334,39 +267,6 @@ Download hunspell from here: http://wordlist.aspell.net/dicts/
 		(add-hook 'org-mode-hook
 							(lambda () (flyspell-mode t))))
 
-#+end_src
-
-
-** Set default applications for opening the relevant files
-- Within Cygwin, open everything with cygstart.exe
-	- It passess it on the Windows and appropriate application is triggered
-
-#+begin_src emacs-lisp :tangle yes
-	(use-package dired-open)
-	 (if *sys-cygwin*
-		 (progn (setq dired-open-extensions
-					 '(
-							("doc"  . "cygstart")
-							("docx" . "cygstart")
-							("xls"  . "cygstart")
-							("xlsx" . "cygstart")
-							("html" . "cygstart")
-							("htm"  . "cygstart")
-							("pdf"  . "cygstart")
-						)
-						)
-						(setq org-file-apps
-					 '(
-							(auto-mode . emacs)
-							("\\.x?html?\\'" . "cygstart %s")
-							("\\.pdf\\'" . "cygstart %s")
-						)
-						)
-			);progn
-		);if-cygwin
-
-; disable validation link in HTML export
-(setq org-html-validation-link nil)
 #+end_src
 
 
@@ -423,7 +323,7 @@ to be fixed.
 #+begin_src emacs-lisp :tangle yes
 (use-package which-key
   :ensure t
-  :defer 10
+  :defer t
   :diminish which-key-mode
   :config
   (which-key-mode 1))
@@ -431,19 +331,6 @@ to be fixed.
 
 
 * Enable, disable and configure packages
-** dashboard
-#+begin_src emacs-lisp :tangle yes
-(use-package dashboard
-  :ensure t
-  :config
-    (dashboard-setup-startup-hook))
-(setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-(setq dashboard-week-agenda nil)
-(setq dashboard-items '((recents . 5)
-                        (projects . 5)
-                        (registers . 5)))
-#+end_src
-
 ** To inherit executable paths from Shell
 Of course, this will not work for windows.
 #+begin_src emacs-lisp :tangle yes
@@ -466,10 +353,12 @@ Of course, this will not work for windows.
 ** YASnippet for inserting structured templates
 
 #+begin_src emacs-lisp :tangle yes
-(use-package yasnippet)
+(use-package yasnippet
+  :defer t)
 (require 'yasnippet)
 (add-to-list 'yas-snippet-dirs "~/code/dot-config/yas-snippets")
-(use-package consult-yasnippet)
+(use-package consult-yasnippet
+  :defer t)
 (yas-global-mode 1)
 #+end_src
 
@@ -477,33 +366,36 @@ Of course, this will not work for windows.
 ** 's' - string manipulating package
 
 #+begin_src emacs-lisp :tangle yes
-(use-package s)
+(use-package s
+  :defer t)
 (require 's)
 #+end_src
 
 ** EVIL -- enable
 
 #+begin_src emacs-lisp :tangle yes
-(setq evil-want-integration t)
-(setq evil-want-keybinding nil)
-(use-package evil)
-(require 'evil)
-(evil-mode t)
-;; Make movement keys behave appropriately when visual-line-mode wraps lines
-;; https://stackoverflow.com/questions/20882935/how-to-move-between-visual-lines-and-move-past-newline-in-evil-mode
-(define-key evil-normal-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
-(define-key evil-normal-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
-(define-key evil-motion-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
-(define-key evil-motion-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
-; Make horizontal movement cross lines                                    
-(setq-default evil-cross-lines t)
+	(setq evil-want-integration t)
+	(setq evil-want-keybinding nil)
+	(use-package evil)
+	(require 'evil)
+	(evil-mode t)
+	;; Make movement keys behave appropriately when visual-line-mode wraps lines
+	;; https://stackoverflow.com/questions/20882935/how-to-move-between-visual-lines-and-move-past-newline-in-evil-mode
+	(define-key evil-normal-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
+	(define-key evil-normal-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
+	(define-key evil-motion-state-map (kbd "<remap> <evil-next-line>") 'evil-next-visual-line)
+	(define-key evil-motion-state-map (kbd "<remap> <evil-previous-line>") 'evil-previous-visual-line)
+	; Make horizontal movement cross lines                                    
+	(setq-default evil-cross-lines t)
+(evil-set-undo-system 'undo-redo)
 #+end_src
 
 ** ORG -- enable and configure different things
 
 #+begin_src emacs-lisp :tangle yes
 (require 'org)
-(use-package org-mime)
+(use-package org-mime
+  :defer t)
 #+end_src
 
 *** set org directory, agenda files etc
@@ -591,18 +483,6 @@ Of course, this will not work for windows.
 
 #+begin_src emacs-lisp :tangle yes
 (setq initial-major-mode 'org-mode)
-#+end_src
-
-*** Use sticky headers
-
-#+begin_src emacs-lisp :tangle yes
-(use-package org-sticky-header
- :hook (org-mode . org-sticky-header-mode)
- :config
- (setq-default
-  org-sticky-header-full-path 'full
-  ;; Child and parent headings are seperated by a /.
-  org-sticky-header-outline-path-separator "/"))
 #+end_src
 
 *** For pretty bullets and proportional font sizes
@@ -796,13 +676,6 @@ Of course, this will not work for windows.
 )
 #+end_src
 
-*** Auto completion of (custom) tags in org-mode
-- Try with helm (helm-{dictionary,addressbook,wordnet,etc})
-- no success so far
-#+begin_src emacs-lisp :tangle yes
-
-#+end_src
-
 *** Custom Agenda views and customized behavior
 #+begin_src emacs-lisp :tangle yes
 (setq org-agenda-custom-commands
@@ -892,7 +765,7 @@ Of course, this will not work for windows.
 ** Google calendar sync with =gcal=
 #+begin_src emacs-lisp :tangle yes
 (use-package org-gcal
-		:ensure t
+		:defer t
 		:config
 				(setq org-gcal-client-id *gs-gcal-client-id*
 						org-gcal-client-secret *gs-gcal-client-secret*
@@ -900,51 +773,6 @@ Of course, this will not work for windows.
 ; (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync)))
 #+end_src
 
-
-** Ledger and its configuration
-#+begin_src emacs-lisp :tangle no
-	;; (use-package company)
-	;; (use-package company-ledger
-	;; 	:ensure company
-	;; 	:init
-	;; 	(with-eval-after-load 'company
-	;; 		(add-to-list 'company-backends  'company-ledger))
-	;; 	)
-
-	;; https://www.reddit.com/r/emacs/comments/8x4xtt/tip_how_i_use_ledger_to_track_my_money/
-	;; https://github.com/yradunchev/ledger
-	(use-package ledger-mode)
-	(use-package flycheck-ledger  :after ledger-mode)
-	(setq ledger-binary-path *gs-ledger-x*)
-	(add-to-list 'auto-mode-alist '("\\.ledger$" . ledger-mode))
-	(add-hook 'ledger-mode-hook
-						(lambda ()
-							;; (company-mode)
-							(setq-local tab-always-indent 'complete)
-							(setq-local completion-cycle-threshold t)
-							(setq-local ledger-complete-in-steps t)
-							)
-						)
-
-	;; capture templates for org
-  (setq gs-ledger-file (concat *gs-gscloud-d* "/ledger/data/journal.ledger"))
-	(setq org-capture-templates
-				(append '(("l" "Ledger entries")
-									("lc" "SBI Credit Card" plain
-									 (file gs-ledger-file)
-									 "%(org-read-date) %^{Description}
-		Expenses:%^{Account}  %^{Amount}
-		Liabilities:CC:SBI
-	")
-									("lb" "SBI Savings Bank Account" plain
-									 (file gs-ledger-file)
-									 "%(org-read-date) * %^{Description}
-		Expenses:%^{Account}  %^{Amount}
-		Assets:Saving:SBIGN
-	"))
-								org-capture-templates))
-
-#+end_src
 
 ** Vertico and its configuration
 #+begin_src emacs-lisp :tangle yes
@@ -1101,27 +929,6 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 #+end_src
 
 
-#+begin_src emacs-lisp :tangle no
-;(load-library "matlab-load")
-;(setq matlab-shell-command "/Applications/MATLAB_R2020a.app/bin/matlab")
-;(customize-set-variable 'matlab-shell-command "~/code/matlab_emacs_wrapper")
-; add for org-mode babel
-(add-to-list
-'auto-mode-alist
-'("\\.m$" . matlab-mode))
-(setq matlab-indent-function t)
-
-;;(use-package matlab-mode)
-	(autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
-	;;tried but doesn't work on windows
-	(if *sys-win32*
-		(setq matlab-shell-command "C:\\Program Files\\MATLAB\\R2017a\\bin\\MATLAB.exe"))
-	(if (or *sys-mac* *sys-linux*)
-		(setq matlab-shell-command "matlab"))
-
-
-#+end_src
-
 ** Python configuration
 #+begin_src emacs-lisp :tangle yes
 
@@ -1143,36 +950,30 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 
 #+end_src
 
-** Setup language server for relevant ones
-#+begin_src emacs-lisp :tangle yes
-(use-package lsp-mode)
-(require 'lsp-mode)
-(add-hook 'go-mode-hook 'lsp-deferred)
-; install server: go get golang.org/x/tools/gopls@latest
-(add-hook 'sh-mode-hook 'lsp-deferred)
-; install server: npm i -g bash-language-server (after brew install npm)
-(add-hook 'python-mode-hook 'lsp-deferred)
-; install server: pip3 install python-language-server[all]
-#+end_src
-
 ** Yaml
 #+begin_src emacs-lisp :tangle yes
-(use-package yaml)
-(use-package yaml-mode)
+(use-package yaml
+  :defer t)
+(use-package yaml-mode
+  :defer t)
 #+end_src
 ** Slime
 #+begin_src emacs-lisp :tangle yes
-(use-package slime)
-(use-package paredit)
+(use-package slime
+  :defer t)
+(use-package paredit
+  :defer t)
 (setq inferior-lisp-program "sbcl")
 #+end_src
 ** Lisp structural editing 
 - https://github.com/abo-abo/lispy
 - https://github.com/countvajhula/symex.el
 #+BEGIN_SRC emacs-lisp :tangle yes
-(use-package lispy)
+(use-package lispy
+  :defer t)
 ;(add-hook 'emacs-lisp-mode-hook (lambda () (lispy-mode 1)))
 (use-package symex
+  :defer t
   :config
   (symex-initialize)
   (global-set-key (kbd "s-;") 'symex-mode-interface))  ; or whatever keybinding you like
@@ -1185,7 +986,8 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
   (kbd "<escape>") 'symex-mode-interface)
 
 ; auto complete for elisp
-(use-package company)
+(use-package company
+  :defer t)
 (add-hook 'emacs-lisp-mode-hook #'company-mode)
 #+END_SRC
 
@@ -1198,105 +1000,6 @@ https://sourceforge.net/p/matlab-emacs/src/ci/master/tree/INSTALL
 (add-hook 'emacs-lisp-mode-hook #'evil-lispy-mode)
 #+END_SRC
 
-** Go language setup
-http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/
-#+begin_src emacs-lisp :tangle yes
-(use-package go-mode)
-
-;(setenv "GOPATH" (concat *gs-gscloud-d* "/bin/go"))
-(setenv "GOPATH" "/Users/gaurav/go")
-(use-package flycheck)
-(require 'flycheck)
-(global-flycheck-mode 1)
-;
-;; for appropriate formatting
-(defun my-go-mode-hook ()
-  ; Call Gofmt before saving                                                    
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  ; Godef jump key binding                                                      
-  (local-set-key (kbd "M-.") 'godef-jump)
-  (local-set-key (kbd "M-*") 'pop-tag-mark)
-  (auto-complete-mode 1)
-	; Customize compile command to run go build
-  (if (not (string-match "go" compile-command))
-      (set (make-local-variable 'compile-command)
-           "go build -v && go test -v && go vet"))
-  )
-(add-hook 'go-mode-hook 'my-go-mode-hook)
-
-#+end_src
-
-
-** C++ language setup
-- https://tuhdo.github.io/c-ide.html
-- sudo apt install global (to get GNU Global on Debian)
-#+begin_src emacs-lisp :tangle yes
-(use-package ggtags)
-(require 'ggtags)
-
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (when (derived-mode-p 'c-mode 'c++-mode 'java-mode 'asm-mode)
-              (ggtags-mode 1))))
-
-(define-key ggtags-mode-map (kbd "C-c g s") 'ggtags-find-other-symbol)
-(define-key ggtags-mode-map (kbd "C-c g h") 'ggtags-view-tag-history)
-(define-key ggtags-mode-map (kbd "C-c g r") 'ggtags-find-reference)
-(define-key ggtags-mode-map (kbd "C-c g f") 'ggtags-find-file)
-(define-key ggtags-mode-map (kbd "C-c g c") 'ggtags-create-tags)
-(define-key ggtags-mode-map (kbd "C-c g u") 'ggtags-update-tags)
-
-(define-key ggtags-mode-map (kbd "M-,") 'pop-tag-mark)
-
-(setq-local imenu-create-index-function #'ggtags-build-imenu-index)
-#+end_src
-
-- autocompletion with clangd
-https://clangd.llvm.org/installation.html
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package eglot)
-(require 'eglot)
-(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-(add-hook 'c-mode-hook 'eglot-ensure)
-(add-hook 'c++-mode-hook 'eglot-ensure)
-#+END_SRC
-
-- cpputils-cmake setup
-https://github.com/redguardtoo/cpputils-cmake
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package auto-complete-clang)
-(setq ac-clang-flags
-      (mapcar (lambda (item)(concat "-I" item))
-              (split-string
-               "
-/usr/include/c++/9
-/usr/include/x86_64-linux-gnu/c++/9
-/usr/include/c++/9/backward
-/usr/lib/gcc/x86_64-linux-gnu/9/include
-/usr/local/include
-/usr/include/x86_64-linux-gnu
-/usr/include
-"
-               )))
-        
-
-(use-package cpputils-cmake)
-
-(add-hook 'c-mode-common-hook
-          (lambda ()
-            (if (derived-mode-p 'c-mode 'c++-mode)
-                (cppcm-reload-all)
-              )))
-;; OPTIONAL, somebody reported that they can use this package with Fortran
-(add-hook 'c90-mode-hook (lambda () (cppcm-reload-all)))
-;; OPTIONAL, avoid typing full path when starting gdb
-(global-set-key (kbd "C-c C-g")
- '(lambda ()(interactive) (gud-gdb (concat "gdb --fullname " (cppcm-get-exe-path-current-buffer)))))
-;; OPTIONAL, some users need specify extra flags forwarded to compiler
-;(setq cppcm-extra-preprocss-flags-from-user '("-I/usr/src/linux/include" "-DNDEBUG"))
-
-#+END_SRC
-
 ** Evil Collection (for key bindings in most places)
 - This one had some error when trying to install with command line
 - Installed from list-packages instead. This worked on linux system (not working on Windows).
@@ -1307,24 +1010,6 @@ https://github.com/redguardtoo/cpputils-cmake
   :ensure t
   :config
   (evil-collection-init))
-#+end_src
-
-** Deft
-- following is for configuring deft mode
-- key to launch deft; disable evil in deft mode
-
-#+begin_src emacs-lisp :tangle yes
-(use-package deft
-  :bind ("C-c n" . deft)
-  :commands (deft)
-  :config
-  (setq deft-directory (concat *gs-gscloud-d* "/Notes")
-        deft-extensions '("org" "md" "txt")
-        deft-default-extension "org"
-        deft-recursive t
-        deft-use-filename-as-title t
-        deft-use-filter-string-for-filename t)
-  (evil-set-initial-state 'deft-mode 'emacs))
 #+end_src
 
 ** AUCTEX / LATEX - needs revamping
@@ -1400,18 +1085,6 @@ This adds a babel language 'latex-macros' which streamlines including latex head
 	    ))
 #+end_src
 
-
-** =paperless= for document filing (mainly papers)
-https://github.com/atgreen/paperless
-#+begin_src emacs-lisp :tangle yes
-(use-package ido-completing-read+)
-;(use-package paperless)
-;(custom-set-variables
-; '(paperless-capture-directory (concat *gs-google-d* "/lit_repo/paperless/downloads"))
-; '(paperless-root-directory (concat *gs-google-d* "/lit_repo/paperless/filed")))
-#+end_src
-
-
 ** =org-ref= and =helm-bibtex= for bibliography management
 https://github.com/jkitchin/org-ref/
 https://github.com/jkitchin/org-ref/blob/master/org-ref.org
@@ -1428,9 +1101,12 @@ https://github.com/tmalsburg/helm-bibtex
   ;(define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
 )
 
-(use-package bibtex-completion)
-(use-package helm-bibtex)
-(use-package org-ref)
+(use-package bibtex-completion
+  :defer t)
+(use-package helm-bibtex
+  :defer t)
+(use-package org-ref
+  :defer t)
 ;(autoload 'helm-bibtex "helm-bibtex" "" t)
 ; location of bib file
 (setq bibtex-completion-bibliography
@@ -1490,16 +1166,8 @@ https://github.com/tmalsburg/helm-bibtex
 
 ** CSV mode
 #+begin_src emacs-lisp :tangle yes
-(use-package csv-mode)
-#+end_src
-
-** Atomic chrome for emacs
-Enables editing any textbox in browser within an emacs window
-https://github.com/alpha22jp/atomic-chrome
-#+begin_src emacs-lisp :tangle yes
-(use-package atomic-chrome)
-(require 'atomic-chrome)
-(atomic-chrome-start-server)
+(use-package csv-mode
+  :defer t)
 #+end_src
 
 ** HTTPD service for localhost
@@ -1514,7 +1182,8 @@ https://github.com/alpha22jp/atomic-chrome
 
 ** Better window management with ace-window and winner-mode
 #+begin_src emacs-lisp :tangle yes
-(use-package ace-window)
+(use-package ace-window
+  :defer t)
 (global-set-key (kbd "M-o") 'ace-window)
 ; set switch window keys to home row
 (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
@@ -1609,16 +1278,10 @@ https://github.com/alpha22jp/atomic-chrome
 )
 #+end_src
 
-*** Neotree
-To open directory tree on the left pane
-#+begin_src emacs-lisp :tangle yes
-(use-package neotree)
-(require 'neotree)
-#+end_src
-
 ** Magit
 #+begin_src emacs-lisp :tangle yes
 (use-package magit
+  :defer t
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
 )
@@ -1630,33 +1293,10 @@ To open directory tree on the left pane
 
 ** Hyperbole
 #+begin_src emacs-lisp :tangle yes
-(use-package hyperbole)
-(hyperbole-mode 1)
+(use-package hyperbole
+  :defer t)
+; (hyperbole-mode 1)
 #+end_src
-
-
-** Maxima for symbolic math
-#+begin_src emacs-lisp :tangle yes
-(setq imaxima-maxima-program "maxima")
-;; for imaxima
-(push "/usr/local/share/emacs/site-lisp/maxima" load-path)
-
-
-(autoload 'imaxima "imaxima" "Maxima frontend" t)
-(autoload 'imath-mode "imath" "Interactive Math mode" t)
-
-; add to babel for org-mode source block
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((maxima . t)))
-#+end_src
-
-* Start server
-	
-#+begin_src emacs-lisp :tangle no
-;;(server-start)
-#+end_src
-
 
 * Personalized journal workflow functions
 - https://emacs.stackexchange.com/questions/36478/generate-a-list-of-calendar-days-for-a-year
@@ -1768,111 +1408,6 @@ Valid list entries are pairs (month . \"%B\") and (year . \"%Y\")."
 
 * Email in emacs
 Not using currently.
-** Setup mu4e email related things
-- Taken from: [[notanumber.io/2016-10-03/better-email-with-mu4e]]
-- Taken from: [[www.djcbsoftware.nl/code/mu/mu4e/Gmail-configuration.html]]
-
-#+begin_src emacs-lisp :tangle no
-;; mu4e is to be setup only for non-Windows environments
-(require 's)
-;;(if (not (eq system-type 'windows-nt))
-(if (not (eq 1 1))
-  (progn
-  
-  (require 'mu4e)
-
-  ;; mail address and use name
-  (setq user-mail-address "gauravs@iitgn.ac.in"
-        user-full-name "Gaurav Srivastava")
-
-  ;;----------------------------------------------
-  ;;mu4e configuration
-  ;;----------------------------------------------
-  ;; basic configuration
-  (setq mail-user-agent 'mu4e-user-agent
-        mu4e-mu-binary "/usr/bin/mu"
-        mu4e-maildir "~/Maildir/gauravs"
-        mu4e-drafts-folder "/[Gmail].Drafts"
-        mu4e-sent-folder "/[Gmail].All Mail"
-        mu4e-trash-folder "/[Gmail].Trash"
-        mu4e-refile-folder "/[Gmail].All Mail"
-        mu4e-get-mail-command "offlineimap"
-        mu4e-update-interval 300
-        mu4e-view-show-images t
-        mu4e-html2text-command "w3m -dump -T text/html"
-        mu4e-headers-include-related t
-        mu4e-attachment-dir "~/Downloads"
-        mu4e-sent-messages-behavior 'delete
-        mu4e-view-show-images t
-  )
-  ;; use imagemagick if available
-  (when (fboundp 'imagemagick-register-types)
-    (imagemagick-register-types))
-
-  ;; actions
-  ;; enable viewing in browswer
-  (add-to-list 'mu4e-view-actions '("View in browser" . mu4e-action-view-in-browser) t)
-
-  ;; spell check
-  (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
-
-  ;; This hook correctly modifies the \Inbox and \Starred flags on email when they are marked.
-  ;; Without it refiling (archiving) and flagging (starring) email won't properly result in
-  ;; the corresponding gmail action.
-  (add-hook 'mu4e-mark-execute-pre-hook
-	    (lambda (mark msg)
-	      (cond ((member mark '(refile trash)) (mu4e-action-retag-message msg "-\\Inbox"))
-		    ((equal mark 'flag) (mu4e-action-retag-message msg "\\Starred"))
-		    ((equal mark 'unflag) (mu4e-action-retag-message msg "-\\Starred")))))
-  
-  ;;email signature
-  (setq mu4e-compose-signature
-          (concat
-            "Gaurav Srivastava\n"
-            "Associate Professor, Civil Engineering, IITGN\n"
-          )
-  )
-
-  ;; bookmarks for common searches 
-  (setq mu4e-actions-tags-header "X-Keywords")
-  (setq mu4e-bookmarks '(("tag:\\\\Inbox" "Inbox" ?i)
-			                   ("flag:unread" "Unread messages" ?u)
-			                   ("date:today..now" "Today's messages" ?t)
-			                   ("date:7d..now" "Last 7 days" ?w)
-			                   ("mime:image/*" "Messages with images" ?p)))
-
-  ;;----------------------------------------------
-  ;;SMTP configuration
-  ;;----------------------------------------------
-  (require 'smtpmail)
-  (setq smtpmail-smtp-server "smtp.gmail.com"
-        send-mail-function 'smtpmail-send-it
-        message-send-mail-function 'smtpmail-send-it
-        smtpmail-starttls-credentials '(("smtp.gmail.com" "587" nil nil))
-        smtpmail-auth-credentials '(expand-file-name "~/.authinfo")
-        smtpmail-smtp-service 587
-        smtpmail-debug-info t
-  )
-
-  ;; add Cc and Bcc headers to the message buffer
-  (setq message-default-mail-headers "Cc: \nBcc: \n")
-
-  (setq message-kill-buffer-on-exit t)
-
-  ;;----------------------------------------------
-  ;;mu4e + org configuration
-  ;;----------------------------------------------
-  (require 'org-mu4e)
-  (setq org-mu4e-link-query-in-headers-mode nil)
-	
-
-  ;;----------------------------------------------
-  ;;capturing sent-mail in org
-  ;;----------------------------------------------
-	
-))
-#+end_src
-
 ** SMTP Send mail
 #+begin_src emacs-lisp :tangle yes
 ;; mail address and use name
@@ -1983,10 +1518,6 @@ Not using currently.
 ; open new frame with Meta-n
 (global-set-key "\M-n" 'make-frame)
 
-; toggle neotree left pane with Meta-t
-; (this is originally bound to org-transport-words
-(global-set-key "\M-t" 'neotree-toggle)
-
 (setq org-log-done t)
 #+end_src
 
@@ -2005,4 +1536,3 @@ Not using currently.
 (set-register ?R (cons 'file (concat *gs-gscloud-d* "/lit_repo/all_entries.bib")))
 #+end_src
 
- 

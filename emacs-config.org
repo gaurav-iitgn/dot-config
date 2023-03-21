@@ -1534,5 +1534,8 @@ Not using currently.
 (set-register ?C (cons 'file (concat *gs-gscloud-d* "/Notes/all_cats.org")))
 ;(set-register ?C (cons 'file (concat *gs-gscloud-d* "/bin/gen_cat.csv")))
 (set-register ?R (cons 'file (concat *gs-gscloud-d* "/lit_repo/all_entries.bib")))
+
+; open file of current year by default
+(find-file (concat "~/Nextcloud/Notes/" *this-year* ".org"))
 #+end_src
 

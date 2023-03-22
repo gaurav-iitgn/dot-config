@@ -1527,15 +1527,13 @@ Not using currently.
 #+begin_src emacs-lisp :tangle yes
 (set-register ?e (cons 'file "~/.emacs"))
 (set-register ?b (cons 'file "~/.bashrc"))
-(set-register ?l (cons 'file "~/.ledgerrc"))
 (set-register ?E (cons 'file "~/code/dot-config/emacs-config.org"))
 (set-register ?I (cons 'file (concat *gs-gscloud-d* "/Notes/000_Inbox.org")))
-(set-register ?J (cons 'file (concat *gs-gscloud-d* "/ledger/data/journal.ledger")))
 (set-register ?C (cons 'file (concat *gs-gscloud-d* "/Notes/all_cats.org")))
 ;(set-register ?C (cons 'file (concat *gs-gscloud-d* "/bin/gen_cat.csv")))
 (set-register ?R (cons 'file (concat *gs-gscloud-d* "/lit_repo/all_entries.bib")))
 
 ; open file of current year by default
-(find-file (concat "~/Nextcloud/Notes/" *this-year* ".org"))
+(find-file (concat *gs-gscloud-d* "/" *this-year* ".org"))
 #+end_src
 

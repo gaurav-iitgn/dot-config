@@ -389,7 +389,7 @@ Of course, this will not work for windows.
 	(setq-default evil-cross-lines t)
   (evil-set-undo-system 'undo-redo)
 
-  ; remap <Esc><Esc> in normal mode to save file
+  ; remap <Esc> in normal mode to save file
   (define-key evil-normal-state-map (kbd "<escape>") 'save-buffer)
 #+end_src
 
@@ -1420,8 +1420,8 @@ Not using currently.
 ;;----------------------------------------------
 ;;SMTP configuration
 ;;----------------------------------------------
-(require 'smtpmail)
 (setq smtpmail-smtp-server "smtp.gmail.com"
+      ;send-mail-function 'async-smtpmail-send-it
       send-mail-function 'smtpmail-send-it
       message-send-mail-function 'smtpmail-send-it
       smtpmail-starttls-credentials '(("smtp.gmail.com" "587" nil nil))
@@ -1429,11 +1429,18 @@ Not using currently.
       smtpmail-smtp-service 587
       smtpmail-debug-info t
 )
+(require 'smtpmail)
 
 ;; add Cc and Bcc headers to the message buffer
 (setq message-default-mail-headers "Cc: \nBcc: \n")
 
 (setq message-kill-buffer-on-exit t)
+
+  ;; postponed messages be put in draft directory
+(setq message-auto-save-directory "/home/gaurav/mail/gaurav-iitgn/drafts")
+
+;; drafts directory
+(setq message-directory "/home/gaurav/mail/gaurav-iitgn/drafts")
 
 ; function to send org headline as an email
 (defun gs/send-headline ()
@@ -1445,29 +1452,27 @@ Not using currently.
 
 ** Setup notmuch email related things
 - Taken from: [[kkatsuyuki.github.io/notmuch-conf]]
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp :tangle yes
 ;; notmuch is to be setup only for non-Windows environments
-(require 's)
-(if (not (eq 1 1))
-;;(if (not (eq system-type 'windows-nt))
+;(require 's)
+(if (not (eq system-type 'windows-nt))
   (progn
   (require 'notmuch)
 
   ;; mail address and use name
   (setq mail-user-agent 'message-user-agent)
-  (setq user-mail-address "nazeer.observer@gmail.com"
+  (setq user-mail-address "gauravs@iitgn.ac.in"
         user-full-name "Gaurav Srivastava")
-  ;(setq user-mail-address "gauravs@iitgn.ac.in"
-        ;user-full-name "Gaurav Srivastava")
 
   ;;----------------------------------------------
   ;;notmuch configuration
   ;;----------------------------------------------
   (setq notmuch-search-oldest-first nil
-        notmuch-fcc-dirs "~/mail/Accountname/[Gmail].Sent Mail"
+        notmuch-fcc-dirs "gaurav-iitgn/sent"
         notmuch-mua-compose-in 'new-frame
   )
 
+  ;; custom key definitions
 	(define-key notmuch-show-mode-map "d"
 		(lambda ()
     "toggle deleted tag for message"
@@ -1484,28 +1489,15 @@ Not using currently.
         (notmuch-search-tag '("-archive"))
       (notmuch-search-tag '("+archive" "-inbox" "-unread")))))
 
-  ;;----------------------------------------------
-  ;;SMTP configuration
-  ;;----------------------------------------------
-  (require 'smtpmail)
-  (setq smtpmail-smtp-server "smtp.gmail.com"
-        send-mail-function 'smtpmail-send-it
-        message-send-mail-function 'smtpmail-send-it
-        smtpmail-starttls-credentials '(("smtp.gmail.com" "587" nil nil))
-        smtpmail-auth-credentials '(expand-file-name "~/.authinfo")
-        smtpmail-smtp-service 587
-        smtpmail-debug-info t
-  )
-
-  ;; add Cc and Bcc headers to the message buffer
-  (setq message-default-mail-headers "Cc: \nBcc: \n")
-
-  ;; postponed messages be put in draft directory
-  (setq message-auto-save-directory "~/mail/Accountname/[Gmail].Drafts")
-  (setq message-kill-buffer-on-exit t)
-
-  ;; change the directory to store the sent mail
-  (setq message-directory "~/mail/Accountname")
+  ;; saved searches
+  (setq notmuch-saved-searches
+   '(
+     (:name "recent" :query "tag:inbox AND date:\"this week\"" :key "r" :sort-order newest-first)
+     (:name "inbox" :query "tag:inbox" :key "i" :sort-order newest-first)
+     (:name "all mail" :query "*" :key "a" :sort-order newest-first)
+     (:name "unread" :query "tag:inbox AND tag:unread" :key "u" :sort-order newest-first)
+     (:name "sent" :query "tag:sent" :key "s" :sort-order newest-first)
+    ))
 ))
 #+end_src
 

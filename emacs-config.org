@@ -1533,7 +1533,7 @@ Not using currently.
 ;(set-register ?C (cons 'file (concat *gs-gscloud-d* "/bin/gen_cat.csv")))
 (set-register ?R (cons 'file (concat *gs-gscloud-d* "/lit_repo/all_entries.bib")))
 
-; open file of current year by default
-(find-file (concat *gs-gscloud-d* "/" *this-year* ".org"))
+; open file of current year by default (instead of scratch)
+(find-file (concat *gs-gscloud-d* "/Notes/" *this-year* ".org"))
 #+end_src
 

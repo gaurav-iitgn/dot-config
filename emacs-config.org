@@ -1481,7 +1481,7 @@ Not using currently.
         (notmuch-show-tag '("-deleted"))
       (notmuch-show-tag '("+deleted" "-inbox" "-unread")))))
 
-  (define-key notmuch-search-mode-map "a"
+  (define-key notmuch-search-mode-map "e"
   (lambda ()
     "toggle archive"
     (interactive)
@@ -1498,6 +1498,11 @@ Not using currently.
      (:name "unread" :query "tag:inbox AND tag:unread" :key "u" :sort-order newest-first)
      (:name "sent" :query "tag:sent" :key "s" :sort-order newest-first)
     ))
+
+  ; to enable storing links from notmuch messages and searches
+  (use-package ol-notmuch
+    :ensure t
+  )
 ))
 #+end_src
 

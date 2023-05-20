@@ -1210,7 +1210,7 @@ https://github.com/tmalsburg/helm-bibtex
 (defun gs/search ()
   "Opens base gdrive directory for fuzzy search"
   (interactive)
-	(consult-find *gs-google-d*))
+	(consult-find *gs-gscloud-d*))
 
 ;; function to search through tags
 ;; currently shows an incrementally searched list of all tags from all_cats
@@ -1219,7 +1219,7 @@ https://github.com/tmalsburg/helm-bibtex
 	"Provide a completion list with description from all_cats.org"
 	(interactive)
 	(let ((lines (with-temp-buffer
-	 							 (insert-file-contents "~/MEGA/Notes/all_cats.org")
+	 							 (insert-file-contents (concat *gs-gscloud-d* "/Notes/all_cats.org"))
 								 (keep-lines "^\*.*:$")
 	 							 (split-string (buffer-string) "\n" t))))
 	

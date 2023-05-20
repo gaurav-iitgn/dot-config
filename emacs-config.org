@@ -5,7 +5,8 @@
 * Initialize package manager
 #+begin_src emacs-lisp :tangle yes
 (require 'package)
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+;(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+(add-to-list 'package-archives '("elpa" .  "https://elpa.gnu.org/packages/") t)
 (add-to-list 'package-archives '("melpa" .  "https://melpa.org/packages/") t)
 (package-initialize)
 #+end_src
@@ -1534,6 +1535,6 @@ Not using currently.
 (set-register ?R (cons 'file (concat *gs-gscloud-d* "/lit_repo/all_entries.bib")))
 
 ; open file of current year by default (instead of scratch)
-(find-file (concat *gs-gscloud-d* "/Notes/" *this-year* ".org"))
+;(find-file (concat *gs-gscloud-d* "/Notes/" *this-year* ".org"))
 #+end_src
 
